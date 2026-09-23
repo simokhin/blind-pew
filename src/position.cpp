@@ -201,3 +201,48 @@ UndoInfo make_move(Position& position, const Move& move) {
 
     return undo_info;
 }
+
+void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
+    position.castling_rights = undo.castling_rights;
+    position.en_passant_target = undo.en_passant_target;
+    position.halfmove_clock = undo.halfmove_clock;
+    position.fullmove_number = undo.fullmove_number;
+
+    position.side_to_move = (position.side_to_move == Color::White) ? Color::Black : Color::White;
+
+    position.board[move.from()] = position.board[move.to()];
+    position.board[move.to()] = undo.captured_piece;
+
+    if (move.flag() == MoveFlag::EnPassant) {
+        position.board[move.to()] = Piece::None;
+        position.board[square_of(rank_of(move.from()), file_of(move.to()))] = undo.captured_piece;
+    }
+
+    if (move.flag() == MoveFlag::Promotion) {
+        position.board[move.from()] =
+            (position.side_to_move == Color::White) ? Piece::WP : Piece::BP;
+    }
+
+    if (move.flag() == MoveFlag::Castling) {
+        switch (move.to()) {
+            case static_cast<int>(Square::G1):
+                position.board[static_cast<int>(Square::H1)] = Piece::WR;
+                position.board[static_cast<int>(Square::F1)] = Piece::None;
+                break;
+            case static_cast<int>(Square::C1):
+                position.board[static_cast<int>(Square::A1)] = Piece::WR;
+                position.board[static_cast<int>(Square::D1)] = Piece::None;
+                break;
+            case static_cast<int>(Square::G8):
+                position.board[static_cast<int>(Square::H8)] = Piece::BR;
+                position.board[static_cast<int>(Square::F8)] = Piece::None;
+                break;
+            case static_cast<int>(Square::C8):
+                position.board[static_cast<int>(Square::A8)] = Piece::BR;
+                position.board[static_cast<int>(Square::D8)] = Piece::None;
+                break;
+            default:
+                break;
+        }
+    }
+}

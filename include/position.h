@@ -29,3 +29,4 @@ struct UndoInfo {
 };
 
 UndoInfo make_move(Position& position, const Move& move);
+void unmake_move(Position& position, const Move& move, const UndoInfo& undo);
