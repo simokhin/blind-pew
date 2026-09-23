@@ -42,6 +42,8 @@ Position make_start_position() {
         .en_passant_target = -1,
         .halfmove_clock = 0,
         .fullmove_number = 1,
+        .white_king_square = static_cast<int>(Square::E1),
+        .black_king_square = static_cast<int>(Square::E8),
     };
 
     return position;
@@ -66,6 +68,13 @@ UndoInfo make_move(Position& position, const Move& move) {
     };
 
     Piece moving_piece = position.board[move.from()];
+
+    // Обновляем позицию короля
+    if (moving_piece == Piece::WK) {
+        position.white_king_square = move.to();
+    } else if (moving_piece == Piece::BK) {
+        position.black_king_square = move.to();
+    }
 
     // Переставляем фигуры
     position.board[move.from()] = Piece::None;
@@ -212,6 +221,12 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
 
     position.board[move.from()] = position.board[move.to()];
     position.board[move.to()] = undo.captured_piece;
+
+    if (position.board[move.from()] == Piece::WK) {
+        position.white_king_square = move.from();
+    } else if (position.board[move.from()] == Piece::BK) {
+        position.black_king_square = move.from();
+    }
 
     if (move.flag() == MoveFlag::EnPassant) {
         position.board[move.to()] = Piece::None;

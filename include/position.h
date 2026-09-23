@@ -16,6 +16,10 @@ struct Position {
     int en_passant_target;  // -1, если недоступно
     int halfmove_clock;     // для правила 50 ходов
     int fullmove_number;
+
+    // Отслеживаем позицию короля
+    int white_king_square;
+    int black_king_square;
 };
 
 Position make_start_position();
