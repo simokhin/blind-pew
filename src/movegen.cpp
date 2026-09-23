@@ -243,3 +243,129 @@ std::vector<Move> generate_castling_moves(const Position& position) {
 
     return moves;
 }
+
+bool is_square_attacked(const Position& position, int square, Color by_color) {
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    // Атакована ли клетка вражескими пешками
+    for (int df : {-1, 1}) {
+        int direction = (by_color == Color::White) ? 1 : -1;
+
+        int enemy_pawn_rank = rank - direction;
+        int enemy_pawn_file = file + df;
+
+        int enemy_pawn_square = square_of(enemy_pawn_rank, enemy_pawn_file);
+
+        if (is_valid_square(enemy_pawn_rank, enemy_pawn_file)) {
+            Piece piece = position.board[enemy_pawn_square];
+
+            if (by_color == Color::White && piece == Piece::WP) {
+                return true;
+            } else if (by_color == Color::Black && piece == Piece::BP) {
+                return true;
+            }
+        }
+    }
+
+    // Атакована ли клетка вражескими конями
+    for (const Offset& o : knight_offsets) {
+        int new_rank = rank + o.dr;
+        int new_file = file + o.df;
+
+        if (is_valid_square(new_rank, new_file)) {
+            int square_to_check = square_of(new_rank, new_file);
+
+            Piece piece = position.board[square_to_check];
+
+            if (by_color == Color::White && piece == Piece::WN) {
+                return true;
+            } else if (by_color == Color::Black && piece == Piece::BN) {
+                return true;
+            }
+        }
+    };
+
+    // Атакована ли пешка вражеским королем
+    for (const Offset& o : king_offsets) {
+        int new_rank = rank + o.dr;
+        int new_file = file + o.df;
+
+        if (is_valid_square(new_rank, new_file)) {
+            int square_to_check = square_of(new_rank, new_file);
+
+            Piece piece = position.board[square_to_check];
+
+            if (by_color == Color::White && piece == Piece::WK) {
+                return true;
+            } else if (by_color == Color::Black && piece == Piece::BK) {
+                return true;
+            }
+        }
+    };
+
+    // Атакована ли клетка вражескими слайдерами
+    for (const Offset& d : rook_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                int square_to_check = square_of(new_rank, new_file);
+
+                Piece piece = position.board[square_to_check];
+
+                if ((by_color == Color::White && piece == Piece::WR) ||
+                    (by_color == Color::White && piece == Piece::WQ)) {
+                    return true;
+                } else if ((by_color == Color::Black && piece == Piece::BR) ||
+                           (by_color == Color::Black && piece == Piece::BQ)) {
+                    return true;
+                }
+
+                if (is_valid_square(new_rank, new_file) && piece == Piece::None) {
+                    new_rank += d.dr;
+                    new_file += d.df;
+                } else {
+                    break;
+                }
+
+            } else {
+                break;
+            }
+        }
+    };
+
+    for (const Offset& d : bishop_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                int square_to_check = square_of(new_rank, new_file);
+
+                Piece piece = position.board[square_to_check];
+
+                if ((by_color == Color::White && piece == Piece::WB) ||
+                    (by_color == Color::White && piece == Piece::WQ)) {
+                    return true;
+                } else if ((by_color == Color::Black && piece == Piece::BB) ||
+                           (by_color == Color::Black && piece == Piece::BQ)) {
+                    return true;
+                }
+
+                if (is_valid_square(new_rank, new_file) && piece == Piece::None) {
+                    new_rank += d.dr;
+                    new_file += d.df;
+                } else {
+                    break;
+                }
+
+            } else {
+                break;
+            }
+        }
+    };
+
+    return false;
+}

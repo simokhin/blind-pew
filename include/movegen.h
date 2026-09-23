@@ -1,22 +1,26 @@
 #pragma once
 
 #include <vector>
-#include "move.h"
+
 #include "board.h"
+#include "move.h"
 #include "position.h"
 
-struct Offset
-{
+struct Offset {
     int dr;
     int df;
 };
 
-std::vector<Move> generate_leaper_moves(const Board &board, int square, const std::vector<Offset> &offsets);
-std::vector<Move> generate_knight_moves(const Board &board, int square);
-std::vector<Move> generate_king_moves(const Board &board, int square);
-std::vector<Move> generate_slider_moves(const Board &board, int square, const std::vector<Offset> &directions);
-std::vector<Move> generate_rook_moves(const Board &board, int square);
-std::vector<Move> generate_bishop_moves(const Board &board, int square);
-std::vector<Move> generate_queen_moves(const Board &board, int square);
-std::vector<Move> generate_pawn_moves(const Position &position, int square);
-std::vector<Move> generate_castling_moves(const Position &position);
+std::vector<Move> generate_leaper_moves(const Board& board, int square,
+                                        const std::vector<Offset>& offsets);
+std::vector<Move> generate_knight_moves(const Board& board, int square);
+std::vector<Move> generate_king_moves(const Board& board, int square);
+std::vector<Move> generate_slider_moves(const Board& board, int square,
+                                        const std::vector<Offset>& directions);
+std::vector<Move> generate_rook_moves(const Board& board, int square);
+std::vector<Move> generate_bishop_moves(const Board& board, int square);
+std::vector<Move> generate_queen_moves(const Board& board, int square);
+std::vector<Move> generate_pawn_moves(const Position& position, int square);
+std::vector<Move> generate_castling_moves(const Position& position);
+
+bool is_square_attacked(const Position& position, int square, Color by_color);
