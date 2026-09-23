@@ -161,8 +161,10 @@ std::vector<Move> generate_queen_moves(const Board &board, int square)
     return moves;
 }
 
-std::vector<Move> generate_pawn_moves(const Board &board, int square)
+std::vector<Move> generate_pawn_moves(const Position &position, int square)
 {
+    const Board &board = position.board;
+
     int rank = rank_of(square);
     int file = file_of(square);
 
@@ -219,6 +221,13 @@ std::vector<Move> generate_pawn_moves(const Board &board, int square)
         if (is_valid_square(capture_rank, capture_file))
         {
             int to = square_of(capture_rank, capture_file);
+
+            // Добавляем взятия на проходе
+            if (to == position.en_passant_target)
+            {
+                moves.push_back(Move(square, to, MoveFlag::EnPassant));
+            }
+
             Piece target = board[to];
 
             if (target != Piece::None && color_of(target) != color_of(moving_piece))

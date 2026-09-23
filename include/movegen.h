@@ -3,6 +3,7 @@
 #include <vector>
 #include "move.h"
 #include "board.h"
+#include "position.h"
 
 struct Offset
 {
@@ -17,4 +18,4 @@ std::vector<Move> generate_slider_moves(const Board &board, int square, const st
 std::vector<Move> generate_rook_moves(const Board &board, int square);
 std::vector<Move> generate_bishop_moves(const Board &board, int square);
 std::vector<Move> generate_queen_moves(const Board &board, int square);
-std::vector<Move> generate_pawn_moves(const Board &board, int square);
+std::vector<Move> generate_pawn_moves(const Position &position, int square);
