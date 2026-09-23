@@ -33,12 +33,11 @@ std::array<PromotionPiece, 4> promotion_pieces = {
     PromotionPiece::Queen,
 };
 
-std::vector<Move> generate_leaper_moves(const Board& board, int square,
-                                        const std::vector<Offset>& offsets) {
+MoveList generate_leaper_moves(const Board& board, int square, const std::vector<Offset>& offsets) {
     int rank = rank_of(square);
     int file = file_of(square);
 
-    std::vector<Move> moves;
+    MoveList moves;
 
     Piece moving_piece = board[square];
 
@@ -57,27 +56,27 @@ std::vector<Move> generate_leaper_moves(const Board& board, int square,
             }
 
             Move move = Move(square, to);
-            moves.push_back(move);
+            moves.add(move);
         }
     };
 
     return moves;
 }
 
-std::vector<Move> generate_knight_moves(const Board& board, int square) {
+MoveList generate_knight_moves(const Board& board, int square) {
     return generate_leaper_moves(board, square, knight_offsets);
 }
 
-std::vector<Move> generate_king_moves(const Board& board, int square) {
+MoveList generate_king_moves(const Board& board, int square) {
     return generate_leaper_moves(board, square, king_offsets);
 }
 
-std::vector<Move> generate_slider_moves(const Board& board, int square,
-                                        const std::vector<Offset>& directions) {
+MoveList generate_slider_moves(const Board& board, int square,
+                               const std::vector<Offset>& directions) {
     int rank = rank_of(square);
     int file = file_of(square);
 
-    std::vector<Move> moves;
+    MoveList moves;
 
     Piece moving_piece = board[square];
 
@@ -96,11 +95,11 @@ std::vector<Move> generate_slider_moves(const Board& board, int square,
                     break;
                 } else if (target != Piece::None) {
                     // Если на пути чужая фигура, сохраняем взятие в массив ходов и останавливаемся
-                    moves.push_back(Move(square, to));
+                    moves.add(Move(square, to));
                     break;
                 } else {
                     // На пути нет фигуры, сохраняем ход и двигаемся дальше
-                    moves.push_back(Move(square, to));
+                    moves.add(Move(square, to));
                     new_rank += d.dr;
                     new_file += d.df;
                 }
@@ -113,30 +112,32 @@ std::vector<Move> generate_slider_moves(const Board& board, int square,
     return moves;
 }
 
-std::vector<Move> generate_rook_moves(const Board& board, int square) {
+MoveList generate_rook_moves(const Board& board, int square) {
     return generate_slider_moves(board, square, rook_directions);
 }
 
-std::vector<Move> generate_bishop_moves(const Board& board, int square) {
+MoveList generate_bishop_moves(const Board& board, int square) {
     return generate_slider_moves(board, square, bishop_directions);
 }
 
-std::vector<Move> generate_queen_moves(const Board& board, int square) {
-    std::vector<Move> moves = generate_rook_moves(board, square);
-    std::vector<Move> bishop_moves = generate_bishop_moves(board, square);
+MoveList generate_queen_moves(const Board& board, int square) {
+    MoveList moves = generate_rook_moves(board, square);
+    MoveList bishop_moves = generate_bishop_moves(board, square);
 
-    moves.insert(moves.end(), bishop_moves.begin(), bishop_moves.end());
+    for (const Move& m : bishop_moves) {
+        moves.add(m);
+    }
 
     return moves;
 }
 
-std::vector<Move> generate_pawn_moves(const Position& position, int square) {
+MoveList generate_pawn_moves(const Position& position, int square) {
     const Board& board = position.board;
 
     int rank = rank_of(square);
     int file = file_of(square);
 
-    std::vector<Move> moves;
+    MoveList moves;
 
     Piece moving_piece = board[square];
 
@@ -154,11 +155,11 @@ std::vector<Move> generate_pawn_moves(const Position& position, int square) {
     // Создаем ход-превращение
     if (new_rank == promotion_rank && target == Piece::None) {
         for (PromotionPiece p : promotion_pieces) {
-            moves.push_back(Move(square, to, MoveFlag::Promotion, p));
+            moves.add(Move(square, to, MoveFlag::Promotion, p));
         }
     } else if (target == Piece::None && is_valid_square(new_rank, file)) {
         // Создаем ход на одну клетку вперед
-        moves.push_back(Move(square, to));
+        moves.add(Move(square, to));
     }
 
     // Проверяем, идёт ли пешка со стартовой клетки
@@ -170,7 +171,7 @@ std::vector<Move> generate_pawn_moves(const Position& position, int square) {
         Piece target = board[double_pawn_move_to];
 
         if (target == Piece::None) {
-            moves.push_back(Move(square, double_pawn_move_to));
+            moves.add(Move(square, double_pawn_move_to));
         }
     }
 
@@ -184,7 +185,7 @@ std::vector<Move> generate_pawn_moves(const Position& position, int square) {
 
             // Добавляем взятия на проходе
             if (to == position.en_passant_target) {
-                moves.push_back(Move(square, to, MoveFlag::EnPassant));
+                moves.add(Move(square, to, MoveFlag::EnPassant));
             }
 
             Piece target = board[to];
@@ -192,10 +193,10 @@ std::vector<Move> generate_pawn_moves(const Position& position, int square) {
             if (target != Piece::None && color_of(target) != color_of(moving_piece)) {
                 if (capture_rank == promotion_rank) {
                     for (PromotionPiece p : promotion_pieces) {
-                        moves.push_back(Move(square, to, MoveFlag::Promotion, p));
+                        moves.add(Move(square, to, MoveFlag::Promotion, p));
                     }
                 } else {
-                    moves.push_back(Move(square, to));
+                    moves.add(Move(square, to));
                 }
             }
         }
@@ -204,23 +205,23 @@ std::vector<Move> generate_pawn_moves(const Position& position, int square) {
     return moves;
 }
 
-std::vector<Move> generate_castling_moves(const Position& position) {
-    std::vector<Move> moves;
+MoveList generate_castling_moves(const Position& position) {
+    MoveList moves;
 
     if (position.side_to_move == Color::White) {
         if (position.castling_rights & WHITE_QUEENSIDE) {
             if ((position.board[static_cast<int>(Square::B1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::C1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::D1)] == Piece::None)) {
-                moves.push_back(Move(static_cast<int>(Square::E1), static_cast<int>(Square::C1),
-                                     MoveFlag::Castling));
+                moves.add(Move(static_cast<int>(Square::E1), static_cast<int>(Square::C1),
+                               MoveFlag::Castling));
             }
         }
         if (position.castling_rights & WHITE_KINGSIDE) {
             if ((position.board[static_cast<int>(Square::F1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::G1)] == Piece::None)) {
-                moves.push_back(Move(static_cast<int>(Square::E1), static_cast<int>(Square::G1),
-                                     MoveFlag::Castling));
+                moves.add(Move(static_cast<int>(Square::E1), static_cast<int>(Square::G1),
+                               MoveFlag::Castling));
             }
         }
     } else {
@@ -228,15 +229,15 @@ std::vector<Move> generate_castling_moves(const Position& position) {
             if ((position.board[static_cast<int>(Square::B8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::C8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::D8)] == Piece::None)) {
-                moves.push_back(Move(static_cast<int>(Square::E8), static_cast<int>(Square::C8),
-                                     MoveFlag::Castling));
+                moves.add(Move(static_cast<int>(Square::E8), static_cast<int>(Square::C8),
+                               MoveFlag::Castling));
             }
         }
         if (position.castling_rights & BLACK_KINGSIDE) {
             if ((position.board[static_cast<int>(Square::F8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::G8)] == Piece::None)) {
-                moves.push_back(Move(static_cast<int>(Square::E8), static_cast<int>(Square::G8),
-                                     MoveFlag::Castling));
+                moves.add(Move(static_cast<int>(Square::E8), static_cast<int>(Square::G8),
+                               MoveFlag::Castling));
             }
         }
     }
@@ -370,7 +371,77 @@ bool is_square_attacked(const Position& position, int square, Color by_color) {
     return false;
 }
 
-std::vector<Move> generate_pseudo_legal_moves(const Position& position) {}
+MoveList generate_pseudo_legal_moves(const Position& position) {
+    MoveList moves;
+
+    for (int square = 0; square < 64; square++) {
+        Piece piece = position.board[square];
+
+        if (piece == Piece::None || color_of(piece) != position.side_to_move) {
+            continue;
+        }
+
+        switch (piece) {
+            case Piece::WP:
+            case Piece::BP: {
+                MoveList pawn_moves = generate_pawn_moves(position, square);
+                for (const Move& m : pawn_moves) {
+                    moves.add(m);
+                }
+                break;
+            }
+            case Piece::WN:
+            case Piece::BN: {
+                MoveList knight_moves = generate_knight_moves(position.board, square);
+                for (const Move& m : knight_moves) {
+                    moves.add(m);
+                }
+                break;
+            }
+            case Piece::WB:
+            case Piece::BB: {
+                MoveList bishop_moves = generate_bishop_moves(position.board, square);
+                for (const Move& m : bishop_moves) {
+                    moves.add(m);
+                }
+                break;
+            }
+            case Piece::WR:
+            case Piece::BR: {
+                MoveList rook_moves = generate_rook_moves(position.board, square);
+                for (const Move& m : rook_moves) {
+                    moves.add(m);
+                }
+                break;
+            }
+            case Piece::WQ:
+            case Piece::BQ: {
+                MoveList queen_moves = generate_queen_moves(position.board, square);
+                for (const Move& m : queen_moves) {
+                    moves.add(m);
+                }
+                break;
+            }
+            case Piece::WK:
+            case Piece::BK: {
+                MoveList king_moves = generate_king_moves(position.board, square);
+                for (const Move& m : king_moves) {
+                    moves.add(m);
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    MoveList castling_moves = generate_castling_moves(position);
+    for (const Move& m : castling_moves) {
+        moves.add(m);
+    }
+
+    return moves;
+}
 
 void MoveList::add(const Move& move) {
     moves[count] = move;
