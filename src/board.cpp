@@ -97,3 +97,23 @@ void print_board(const Board &board)
         std::cout << '\n';
     }
 }
+
+int rank_of(int square)
+{
+    return square / 8;
+};
+
+int file_of(int square)
+{
+    return square % 8;
+};
+
+int square_of(int rank, int file)
+{
+    return rank * 8 + file;
+};
+
+bool is_valid_square(int rank, int file)
+{
+    return rank >= 0 && rank <= 7 && file >= 0 && file <= 7;
+};
