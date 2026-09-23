@@ -1,20 +1,31 @@
 #pragma once
-#include "board.h"
 #include <cstdint>
+
+#include "board.h"
+#include "move.h"
 
 constexpr uint8_t WHITE_KINGSIDE = 1;
 constexpr uint8_t WHITE_QUEENSIDE = 2;
 constexpr uint8_t BLACK_KINGSIDE = 4;
 constexpr uint8_t BLACK_QUEENSIDE = 8;
 
-struct Position
-{
+struct Position {
     Board board;
     Color side_to_move;
     uint8_t castling_rights;
-    int en_passant_target; // -1, если недоступно
-    int halfmove_clock;    // для правила 50 ходов
+    int en_passant_target;  // -1, если недоступно
+    int halfmove_clock;     // для правила 50 ходов
     int fullmove_number;
 };
 
 Position make_start_position();
+
+struct UndoInfo {
+    Piece captured_piece;
+    uint8_t castling_rights;
+    int en_passant_target;
+    int halfmove_clock;
+    int fullmove_number;
+};
+
+UndoInfo make_move(Position& position, const Move& move);
