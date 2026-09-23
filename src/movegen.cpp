@@ -443,6 +443,27 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
     return moves;
 }
 
+MoveList generate_legal_moves(const Position& position) {
+    MoveList pseudo_legal_moves = generate_pseudo_legal_moves(position);
+    MoveList legal_moves;
+
+    for (const Move& m : pseudo_legal_moves) {
+        Position new_position = position;
+        Color mover = position.side_to_move;
+
+        make_move(new_position, m);
+
+        int king_square =
+            mover == Color::White ? new_position.white_king_square : new_position.black_king_square;
+
+        if (!is_square_attacked(new_position, king_square, new_position.side_to_move)) {
+            legal_moves.add(m);
+        }
+    }
+
+    return legal_moves;
+}
+
 void MoveList::add(const Move& move) {
     moves[count] = move;
     count++;

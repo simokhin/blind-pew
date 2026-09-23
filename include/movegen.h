@@ -40,3 +40,4 @@ MoveList generate_castling_moves(const Position& position);
 bool is_square_attacked(const Position& position, int square, Color by_color);
 
 MoveList generate_pseudo_legal_moves(const Position& position);
+MoveList generate_legal_moves(const Position& position);
