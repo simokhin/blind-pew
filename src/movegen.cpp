@@ -1,4 +1,5 @@
 #include "movegen.h"
+#include "move.h"
 
 std::vector<Offset> knight_offsets = {
     Offset{1, 2},
@@ -63,11 +64,7 @@ std::vector<Move> generate_leaper_moves(const Board &board, int square, const st
                 continue;
             }
 
-            Move move = {
-                square,
-                to,
-            };
-
+            Move move = Move(square, to);
             moves.push_back(move);
         }
     };
@@ -116,13 +113,13 @@ std::vector<Move> generate_slider_moves(const Board &board, int square, const st
                 else if (target != Piece::None)
                 {
                     // Если на пути чужая фигура, сохраняем взятие в массив ходов и останавливаемся
-                    moves.push_back(Move{square, to});
+                    moves.push_back(Move(square, to));
                     break;
                 }
                 else
                 {
                     // На пути нет фигуры, сохраняем ход и двигаемся дальше
-                    moves.push_back(Move{square, to});
+                    moves.push_back(Move(square, to));
                     new_rank += d.dr;
                     new_file += d.df;
                 }
