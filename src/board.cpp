@@ -2,6 +2,18 @@
 #include <iostream>
 #include "board.h"
 
+// Определить цвет фигуры
+Color color_of(Piece piece)
+{
+    int value = static_cast<int>(piece);
+
+    if (value == 0)
+        return Color::None;
+    if (value <= 6)
+        return Color::White;
+    return Color::Black;
+}
+
 // Расстановка стартовой позиции
 Board make_start_position()
 {
@@ -116,16 +128,4 @@ int square_of(int rank, int file)
 bool is_valid_square(int rank, int file)
 {
     return rank >= 0 && rank <= 7 && file >= 0 && file <= 7;
-}
-
-bool is_white(Piece piece)
-{
-    int value = static_cast<int>(piece);
-    return value >= 1 && value <= 6;
-};
-
-bool is_black(Piece piece)
-{
-    int value = static_cast<int>(piece);
-    return value >= 7 && value <= 12;
 }

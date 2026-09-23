@@ -27,7 +27,7 @@ std::vector<Move> generate_knight_moves(const Board &board, int square)
 
             Piece target = board[to];
 
-            if ((is_white(moving_piece) && is_white(target)) || (is_black(moving_piece) && is_black(target)))
+            if (color_of(moving_piece) == color_of(target))
             {
                 continue;
             }
