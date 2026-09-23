@@ -1,11 +1,29 @@
 #include "movegen.h"
 
-// Смещения коня
-std::array<Offset, 8> offsets = {
-    Offset{1, 2}, Offset{1, -2}, Offset{-1, 2}, Offset{-1, -2},
-    Offset{2, 1}, Offset{2, -1}, Offset{-2, 1}, Offset{-2, -1}};
+std::vector<Offset> knight_offsets = {
+    Offset{1, 2},
+    Offset{1, -2},
+    Offset{-1, 2},
+    Offset{-1, -2},
+    Offset{2, 1},
+    Offset{2, -1},
+    Offset{-2, 1},
+    Offset{-2, -1},
+};
 
-std::vector<Move> generate_knight_moves(const Board &board, int square)
+std::vector<Offset> king_offsets = {
+    Offset{1, 0},
+    Offset{1, 1},
+    Offset{1, -1},
+    Offset{-1, 0},
+    Offset{-1, 1},
+    Offset{-1, -1},
+    Offset{0, 1},
+    Offset{0, -1},
+};
+
+// Генерация ходов для фигур-липеров
+std::vector<Move> generate_leaper_moves(const Board &board, int square, const std::vector<Offset> &offsets)
 {
     int rank = rank_of(square);
     int file = file_of(square);
@@ -14,7 +32,7 @@ std::vector<Move> generate_knight_moves(const Board &board, int square)
 
     Piece moving_piece = board[square];
 
-    // Вычисляем new_rank и new_file для каждого смещения коня
+    // Вычисляем new_rank и new_file для каждого смещения фигуры
     for (const Offset &o : offsets)
     {
 
@@ -42,4 +60,14 @@ std::vector<Move> generate_knight_moves(const Board &board, int square)
     };
 
     return moves;
+};
+
+std::vector<Move> generate_knight_moves(const Board &board, int square)
+{
+    return generate_leaper_moves(board, square, knight_offsets);
+};
+
+std::vector<Move> generate_king_moves(const Board &board, int square)
+{
+    return generate_leaper_moves(board, square, king_offsets);
 };

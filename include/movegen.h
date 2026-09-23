@@ -10,4 +10,6 @@ struct Offset
     int df;
 };
 
+std::vector<Move> generate_leaper_moves(const Board &board, int square, const std::vector<Offset> &offsets);
 std::vector<Move> generate_knight_moves(const Board &board, int square);
+std::vector<Move> generate_king_moves(const Board &board, int square);
