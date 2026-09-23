@@ -11,5 +11,5 @@ endif()
 
 add_compile_options(-Wall -Wextra -Wpedantic)
 
-add_executable(chess_engine src/main.cpp src/board.cpp src/movegen.cpp src/move.cpp)
+add_executable(chess_engine src/main.cpp src/board.cpp src/movegen.cpp src/move.cpp src/position.cpp)
 target_include_directories(chess_engine PRIVATE include)

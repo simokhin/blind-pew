@@ -30,8 +30,6 @@ Color color_of(Piece piece);
 
 using Board = std::array<Piece, 64>;
 
-Board make_start_position();
-
 void print_board(const Board &board);
 
 int rank_of(int square);
