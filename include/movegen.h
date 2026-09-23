@@ -24,3 +24,18 @@ std::vector<Move> generate_pawn_moves(const Position& position, int square);
 std::vector<Move> generate_castling_moves(const Position& position);
 
 bool is_square_attacked(const Position& position, int square, Color by_color);
+
+std::vector<Move> generate_pseudo_legal_moves(const Position& position);
+
+constexpr int MAX_MOVES = 256;
+
+class MoveList {
+   public:
+    void add(const Move& move);
+    int size() const;
+    const Move& operator[](int index) const;
+
+   private:
+    std::array<Move, MAX_MOVES> moves;
+    int count = 0;
+};

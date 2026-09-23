@@ -369,3 +369,13 @@ bool is_square_attacked(const Position& position, int square, Color by_color) {
 
     return false;
 }
+
+std::vector<Move> generate_pseudo_legal_moves(const Position& position) {}
+
+void MoveList::add(const Move& move) {
+    moves[count] = move;
+    count++;
+}
+int MoveList::size() const { return count; }
+
+const Move& MoveList::operator[](int index) const { return moves[index]; };
