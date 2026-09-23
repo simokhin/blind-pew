@@ -116,4 +116,16 @@ int square_of(int rank, int file)
 bool is_valid_square(int rank, int file)
 {
     return rank >= 0 && rank <= 7 && file >= 0 && file <= 7;
+}
+
+bool is_white(Piece piece)
+{
+    int value = static_cast<int>(piece);
+    return value >= 1 && value <= 6;
 };
+
+bool is_black(Piece piece)
+{
+    int value = static_cast<int>(piece);
+    return value >= 7 && value <= 12;
+}

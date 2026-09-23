@@ -12,15 +12,25 @@ std::vector<Move> generate_knight_moves(const Board &board, int square)
 
     std::vector<Move> moves;
 
+    Piece moving_piece = board[square];
+
     // Вычисляем new_rank и new_file для каждого смещения коня
     for (const Offset &o : offsets)
     {
+
         int new_rank = rank + o.dr;
         int new_file = file + o.df;
 
         if (is_valid_square(new_rank, new_file))
         {
             int to = square_of(new_rank, new_file);
+
+            Piece target = board[to];
+
+            if ((is_white(moving_piece) && is_white(target)) || (is_black(moving_piece) && is_black(target)))
+            {
+                continue;
+            }
 
             Move move = {
                 square,
