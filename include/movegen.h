@@ -34,6 +34,8 @@ class MoveList {
     void add(const Move& move);
     int size() const;
     const Move& operator[](int index) const;
+    const Move* begin() const;
+    const Move* end() const;
 
    private:
     std::array<Move, MAX_MOVES> moves;
