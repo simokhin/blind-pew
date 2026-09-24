@@ -1,93 +1,78 @@
-#include <array>
-#include <iostream>
 #include "board.h"
 
+#include <array>
+#include <iostream>
+
 // Определить цвет фигуры
-Color color_of(Piece piece)
-{
+Color color_of(Piece piece) {
     int value = static_cast<int>(piece);
 
-    if (value == 0)
-        return Color::None;
-    if (value <= 6)
-        return Color::White;
+    if (value == 0) return Color::None;
+    if (value <= 6) return Color::White;
     return Color::Black;
 }
 
-
-void print_board(const Board &board)
-{
-    for (int rank = 7; rank >= 0; rank--)
-    {
-        for (int file = 0; file <= 7; file++)
-        {
+void print_board(const Board& board) {
+    for (int rank = 7; rank >= 0; rank--) {
+        for (int file = 0; file <= 7; file++) {
             int index = rank * 8 + file;
 
-            const Piece &p = board[index];
+            const Piece& p = board[index];
 
-            switch (p)
-            {
-            case Piece::WP:
-                std::cout << 'P';
-                break;
-            case Piece::WR:
-                std::cout << 'R';
-                break;
-            case Piece::WN:
-                std::cout << 'N';
-                break;
-            case Piece::WB:
-                std::cout << 'B';
-                break;
-            case Piece::WK:
-                std::cout << 'K';
-                break;
-            case Piece::WQ:
-                std::cout << 'Q';
-                break;
-            case Piece::BP:
-                std::cout << 'p';
-                break;
-            case Piece::BR:
-                std::cout << 'r';
-                break;
-            case Piece::BN:
-                std::cout << 'n';
-                break;
-            case Piece::BB:
-                std::cout << 'b';
-                break;
-            case Piece::BK:
-                std::cout << 'k';
-                break;
-            case Piece::BQ:
-                std::cout << 'q';
-                break;
-            default:
-                std::cout << '.';
-                break;
+            switch (p) {
+                case Piece::WP:
+                    std::cout << 'P';
+                    break;
+                case Piece::WR:
+                    std::cout << 'R';
+                    break;
+                case Piece::WN:
+                    std::cout << 'N';
+                    break;
+                case Piece::WB:
+                    std::cout << 'B';
+                    break;
+                case Piece::WK:
+                    std::cout << 'K';
+                    break;
+                case Piece::WQ:
+                    std::cout << 'Q';
+                    break;
+                case Piece::BP:
+                    std::cout << 'p';
+                    break;
+                case Piece::BR:
+                    std::cout << 'r';
+                    break;
+                case Piece::BN:
+                    std::cout << 'n';
+                    break;
+                case Piece::BB:
+                    std::cout << 'b';
+                    break;
+                case Piece::BK:
+                    std::cout << 'k';
+                    break;
+                case Piece::BQ:
+                    std::cout << 'q';
+                    break;
+                default:
+                    std::cout << '.';
+                    break;
             }
         }
         std::cout << '\n';
     }
 }
 
-int rank_of(int square)
-{
-    return square / 8;
-};
+int rank_of(int square) { return square / 8; };
 
-int file_of(int square)
-{
-    return square % 8;
-};
+int file_of(int square) { return square % 8; };
 
-int square_of(int rank, int file)
-{
-    return rank * 8 + file;
-};
+int square_of(int rank, int file) { return rank * 8 + file; };
 
-bool is_valid_square(int rank, int file)
-{
+bool is_valid_square(int rank, int file) {
     return rank >= 0 && rank <= 7 && file >= 0 && file <= 7;
 }
+
+Color opposite_color(Color color) { return (color == Color::White) ? Color::Black : Color::White; }

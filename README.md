@@ -6,7 +6,12 @@ A chess engine written in C++, built as a learning project for the language and 
 
 - Mailbox 8x8 board representation
 - Move generation
+- Simple evaluation (material-based)
+- Simple search (negamax only)
 
 ## Next
 
-- Search and more
+- Alpha-beta pruning
+- UCI support
+- FEN parsing
+- PSTs (piece-square tables) for evaluation
