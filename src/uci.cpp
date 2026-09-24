@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 
+#include "bench.h"
 #include "constants.h"
 #include "fen.h"
 #include "movegen.h"
@@ -178,6 +179,12 @@ void uci_loop() {
             } else {
                 std::cout << "\n";
             }
+        }
+
+        if (command == "bench") {
+            int depth = 4;
+            stream >> depth;
+            run_bench(depth);
         }
     }
 }
