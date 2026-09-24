@@ -212,14 +212,20 @@ MoveList generate_castling_moves(const Position& position) {
         if (position.castling_rights & WHITE_QUEENSIDE) {
             if ((position.board[static_cast<int>(Square::B1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::C1)] == Piece::None) &&
-                (position.board[static_cast<int>(Square::D1)] == Piece::None)) {
+                (position.board[static_cast<int>(Square::D1)] == Piece::None) &&
+                !is_square_attacked(position, static_cast<int>(Square::E1), Color::Black) &&
+                !is_square_attacked(position, static_cast<int>(Square::D1), Color::Black) &&
+                !is_square_attacked(position, static_cast<int>(Square::C1), Color::Black)) {
                 moves.add(Move(static_cast<int>(Square::E1), static_cast<int>(Square::C1),
                                MoveFlag::Castling));
             }
         }
         if (position.castling_rights & WHITE_KINGSIDE) {
             if ((position.board[static_cast<int>(Square::F1)] == Piece::None) &&
-                (position.board[static_cast<int>(Square::G1)] == Piece::None)) {
+                (position.board[static_cast<int>(Square::G1)] == Piece::None) &&
+                !is_square_attacked(position, static_cast<int>(Square::E1), Color::Black) &&
+                !is_square_attacked(position, static_cast<int>(Square::F1), Color::Black) &&
+                !is_square_attacked(position, static_cast<int>(Square::G1), Color::Black)) {
                 moves.add(Move(static_cast<int>(Square::E1), static_cast<int>(Square::G1),
                                MoveFlag::Castling));
             }
@@ -228,14 +234,20 @@ MoveList generate_castling_moves(const Position& position) {
         if (position.castling_rights & BLACK_QUEENSIDE) {
             if ((position.board[static_cast<int>(Square::B8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::C8)] == Piece::None) &&
-                (position.board[static_cast<int>(Square::D8)] == Piece::None)) {
+                (position.board[static_cast<int>(Square::D8)] == Piece::None) &&
+                !is_square_attacked(position, static_cast<int>(Square::E8), Color::White) &&
+                !is_square_attacked(position, static_cast<int>(Square::D8), Color::White) &&
+                !is_square_attacked(position, static_cast<int>(Square::C8), Color::White)) {
                 moves.add(Move(static_cast<int>(Square::E8), static_cast<int>(Square::C8),
                                MoveFlag::Castling));
             }
         }
         if (position.castling_rights & BLACK_KINGSIDE) {
             if ((position.board[static_cast<int>(Square::F8)] == Piece::None) &&
-                (position.board[static_cast<int>(Square::G8)] == Piece::None)) {
+                (position.board[static_cast<int>(Square::G8)] == Piece::None) &&
+                !is_square_attacked(position, static_cast<int>(Square::E8), Color::White) &&
+                !is_square_attacked(position, static_cast<int>(Square::F8), Color::White) &&
+                !is_square_attacked(position, static_cast<int>(Square::G8), Color::White)) {
                 moves.add(Move(static_cast<int>(Square::E8), static_cast<int>(Square::G8),
                                MoveFlag::Castling));
             }

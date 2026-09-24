@@ -175,10 +175,10 @@ UndoInfo make_move(Position& position, const Move& move) {
         position.castling_rights &= ~WHITE_KINGSIDE;
     }
     if (move.to() == static_cast<int>(Square::A8)) {
-        position.castling_rights &= ~BLACK_KINGSIDE;
+        position.castling_rights &= ~BLACK_QUEENSIDE;
     }
     if (move.to() == static_cast<int>(Square::H8)) {
-        position.castling_rights &= ~BLACK_QUEENSIDE;
+        position.castling_rights &= ~BLACK_KINGSIDE;
     }
 
     // По умолчанию сбрасываем ход en passant
