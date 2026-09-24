@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 enum class Piece { None, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK };
 
@@ -84,3 +85,5 @@ int file_of(int square);
 int square_of(int rank, int file);
 bool is_valid_square(int rank, int file);
 Color opposite_color(Color color);
+
+int square_from_algebraic(const std::string& s);
