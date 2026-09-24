@@ -1,5 +1,7 @@
 build/
+build-release/
 compile_commands.json
 *.o
 *.out
 .vscode
+bin/
