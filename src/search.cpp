@@ -5,13 +5,13 @@
 #include "evaluate.h"
 #include "movegen.h"
 
-int negamax(Position& position, int depth, SearchState& state, int ply) {
+int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply) {
     // Проверяем, остановлен ли поиск
     if (state.stopped) {
         return 0;
     }
 
-    // Смотри каждые 2048 узлов, истекло ли время
+    // Смотрим каждые 2048 узлов, истекло ли время
     if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.deadline) {
         state.stopped = true;
         return 0;
@@ -53,7 +53,8 @@ int negamax(Position& position, int depth, SearchState& state, int ply) {
 
         has_legal_move = true;
 
-        int score = -negamax(position, depth - 1, state, ply + 1);
+        // Вызываем функцию рекурсивно
+        int score = -negamax(position, depth - 1, state, -beta, -alpha, ply + 1);
 
         unmake_move(position, m, undo);
 
@@ -61,8 +62,19 @@ int negamax(Position& position, int depth, SearchState& state, int ply) {
             break;
         }
 
+        // Обвновляем оценку
         if (score > best) {
             best = score;
+        }
+
+        // Обновляем альфу
+        if (score > alpha) {
+            alpha = score;
+        }
+
+        // Отсекаем остальные варианты, если альфа больше беты
+        if (alpha >= beta) {
+            break;
         }
     }
 
@@ -93,7 +105,7 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
         for (const Move& m : moves) {
             UndoInfo undo = make_move(position, m);
 
-            int score = -negamax(position, depth - 1, state, 1);
+            int score = -negamax(position, depth - 1, state, -INFINITE, INFINITE, 1);
 
             unmake_move(position, m, undo);
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 
+#include "constants.h"
 #include "move.h"
 #include "position.h"
 
@@ -11,5 +12,6 @@ struct SearchState {
     int depth_reached = 0;
 };
 
-int negamax(Position& position, int depth, SearchState& state, int ply = 0);
+int negamax(Position& position, int depth, SearchState& state, int alpha = -INFINITE,
+            int beta = INFINITE, int ply = 0);
 Move find_best_move(Position& position, int max_depth, SearchState& state);
