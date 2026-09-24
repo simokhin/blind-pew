@@ -1,15 +1,16 @@
 #include "search.h"
 
 #include "board.h"
+#include "constants.h"
 #include "evaluate.h"
 #include "movegen.h"
 
-int negamax(Position& position, int depth) {
+int negamax(Position& position, int depth, int ply) {
     if (depth == 0) {
         return evaluate(position);
     }
 
-    int best = -1000000;
+    int best = -INFINITE;
 
     MoveList moves = generate_pseudo_legal_moves(position);
 
@@ -39,7 +40,7 @@ int negamax(Position& position, int depth) {
 
         has_legal_move = true;
 
-        int score = -negamax(position, depth - 1);
+        int score = -negamax(position, depth - 1, ply + 1);
 
         unmake_move(position, m, undo);
 
@@ -53,7 +54,7 @@ int negamax(Position& position, int depth) {
         int king_square = (position.side_to_move == Color::White) ? position.white_king_square
                                                                   : position.black_king_square;
         if (is_square_attacked(position, king_square, opposite_color(position.side_to_move))) {
-            return -100000;
+            return -(MATE - ply);
         }
         return 0;
     }
