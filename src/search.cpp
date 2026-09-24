@@ -5,7 +5,9 @@
 #include "evaluate.h"
 #include "movegen.h"
 
-int negamax(Position& position, int depth, int ply) {
+int negamax(Position& position, int depth, SearchState& state, int ply) {
+    state.nodes++;
+
     if (depth == 0) {
         return evaluate(position);
     }
@@ -40,7 +42,7 @@ int negamax(Position& position, int depth, int ply) {
 
         has_legal_move = true;
 
-        int score = -negamax(position, depth - 1, ply + 1);
+        int score = -negamax(position, depth - 1, state, ply + 1);
 
         unmake_move(position, m, undo);
 
@@ -60,4 +62,27 @@ int negamax(Position& position, int depth, int ply) {
     }
 
     return best;
+}
+
+Move find_best_move(Position& position, int depth, SearchState& state) {
+    MoveList moves = generate_legal_moves(position);
+
+    int best_score = -INFINITE;
+
+    Move best_move = {0, 0};
+
+    for (const Move& m : moves) {
+        UndoInfo undo = make_move(position, m);
+
+        int score = -negamax(position, depth - 1, state, 1);
+
+        unmake_move(position, m, undo);
+
+        if (score > best_score) {
+            best_score = score;
+            best_move = m;
+        }
+    }
+
+    return best_move;
 }

@@ -1,4 +1,10 @@
 #pragma once
+#include "move.h"
 #include "position.h"
 
-int negamax(Position& position, int depth, int ply = 0);
+struct SearchState {
+    long nodes = 0;
+};
+
+int negamax(Position& position, int depth, SearchState& state, int ply = 0);
+Move find_best_move(Position& position, int depth, SearchState& state);
