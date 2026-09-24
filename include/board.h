@@ -87,3 +87,4 @@ bool is_valid_square(int rank, int file);
 Color opposite_color(Color color);
 
 int square_from_algebraic(const std::string& s);
+std::string algebraic_from_square(int square);

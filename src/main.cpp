@@ -1,9 +1,3 @@
-#include "board.h"
-#include "position.h"
+#include "uci.h"
 
-int main()
-{
-    Position position = make_start_position();
-
-    print_board(position.board);
-}
+int main() { uci_loop(); }

@@ -8,6 +8,7 @@
 #include "fen.h"
 #include "movegen.h"
 #include "position.h"
+#include "search.h"
 
 void uci_loop() {
     std::string line;
@@ -92,6 +93,34 @@ void uci_loop() {
                         }
                     }
                 }
+            }
+        }
+
+        if (command == "go") {
+            SearchState state;
+            Move best_move = find_best_move(position, 4, state);
+            std::cout << "bestmove " << algebraic_from_square(best_move.from())
+                      << algebraic_from_square(best_move.to());
+
+            if (best_move.flag() == MoveFlag::Promotion) {
+                switch (best_move.promotion()) {
+                    case PromotionPiece::Queen:
+                        std::cout << "q" << "\n";
+                        break;
+                    case PromotionPiece::Rook:
+                        std::cout << "r" << "\n";
+                        break;
+                    case PromotionPiece::Knight:
+                        std::cout << "n" << "\n";
+                        break;
+                    case PromotionPiece::Bishop:
+                        std::cout << "b" << "\n";
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                std::cout << "\n";
             }
         }
     }

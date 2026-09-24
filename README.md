@@ -8,10 +8,9 @@ A chess engine written in C++, built as a learning project for the language and 
 - Move generation
 - Simple evaluation (material-based)
 - Simple search (negamax only)
-- FEN parsing
+- Basic UCI support
 
 ## Next
 
 - Alpha-beta pruning
-- UCI support
 - PSTs (piece-square tables) for evaluation
