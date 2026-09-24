@@ -83,6 +83,9 @@ void print_board(const Board& board);
 int rank_of(int square);
 int file_of(int square);
 int square_of(int rank, int file);
+
+int mirror_square(int square);
+
 bool is_valid_square(int rank, int file);
 Color opposite_color(Color color);
 
