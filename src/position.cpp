@@ -261,3 +261,7 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
         }
     }
 }
+
+int king_square_of(const Position& position, Color color) {
+    return color == Color::White ? position.white_king_square : position.black_king_square;
+}

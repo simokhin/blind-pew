@@ -476,6 +476,85 @@ MoveList generate_legal_moves(const Position& position) {
     return legal_moves;
 }
 
+MoveList generate_capture_moves(const Position& position) {
+    MoveList moves;
+
+    for (int square = 0; square < 64; square++) {
+        Piece piece = position.board[square];
+
+        if (piece == Piece::None || color_of(piece) != position.side_to_move) {
+            continue;
+        }
+
+        switch (piece) {
+            case Piece::WP:
+            case Piece::BP: {
+                MoveList pawn_moves = generate_pawn_moves(position, square);
+                for (const Move& m : pawn_moves) {
+                    if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant) {
+                        moves.add(m);
+                    }
+                }
+                break;
+            }
+            case Piece::WN:
+            case Piece::BN: {
+                MoveList knight_moves = generate_knight_moves(position.board, square);
+                for (const Move& m : knight_moves) {
+                    if (position.board[m.to()] != Piece::None) {
+                        moves.add(m);
+                    }
+                }
+                break;
+            }
+            case Piece::WB:
+            case Piece::BB: {
+                MoveList bishop_moves = generate_bishop_moves(position.board, square);
+                for (const Move& m : bishop_moves) {
+                    if (position.board[m.to()] != Piece::None) {
+                        moves.add(m);
+                    }
+                }
+                break;
+            }
+            case Piece::WR:
+            case Piece::BR: {
+                MoveList rook_moves = generate_rook_moves(position.board, square);
+                for (const Move& m : rook_moves) {
+                    if (position.board[m.to()] != Piece::None) {
+                        moves.add(m);
+                    }
+                }
+                break;
+            }
+            case Piece::WQ:
+            case Piece::BQ: {
+                MoveList queen_moves = generate_queen_moves(position.board, square);
+                for (const Move& m : queen_moves) {
+                    if (position.board[m.to()] != Piece::None) {
+                        moves.add(m);
+                    }
+                }
+                break;
+            }
+            case Piece::WK:
+            case Piece::BK: {
+                MoveList king_moves = generate_king_moves(position.board, square);
+                for (const Move& m : king_moves) {
+                    if (position.board[m.to()] != Piece::None) {
+                        moves.add(m);
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return moves;
+}
+
 void MoveList::add(const Move& move) {
     moves[count] = move;
     count++;
