@@ -106,6 +106,11 @@ void uci_loop() {
 
             std::string token;
 
+            int wtime = 0;
+            int btime = 0;
+            int winc = 0;
+            int binc = 0;
+
             while (stream >> token) {
                 if (token == "depth") {
                     stream >> max_depth;
@@ -114,6 +119,28 @@ void uci_loop() {
                     stream >> ms;
                     state.deadline =
                         std::chrono::steady_clock::now() + std::chrono::milliseconds(ms);
+                } else if (token == "infinite") {
+                    // Используются значения по умолчанию
+                } else if (token == "wtime") {
+                    stream >> wtime;
+                } else if (token == "btime") {
+                    stream >> btime;
+                } else if (token == "winc") {
+                    stream >> winc;
+                } else if (token == "binc") {
+                    stream >> binc;
+                }
+            }
+
+            if (wtime > 0 || btime > 0) {
+                if (position.side_to_move == Color::White) {
+                    int time_for_move = wtime / 20;
+                    state.deadline = std::chrono::steady_clock::now() +
+                                     std::chrono::milliseconds(time_for_move + winc);
+                } else if (position.side_to_move == Color::Black) {
+                    int time_for_move = btime / 20;
+                    state.deadline = std::chrono::steady_clock::now() +
+                                     std::chrono::milliseconds(time_for_move + binc);
                 }
             }
 

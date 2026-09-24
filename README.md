@@ -9,6 +9,7 @@ A chess engine written in C++, built as a learning project for the language and 
 - Simple evaluation (material-based)
 - Simple search (negamax only)
 - Basic UCI support
+- Iterative deepening
 
 ## Next
 
