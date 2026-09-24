@@ -144,7 +144,17 @@ void uci_loop() {
                 }
             }
 
+            auto search_start = std::chrono::steady_clock::now();
+
             Move best_move = find_best_move(position, max_depth, state);
+
+            auto search_end = std::chrono::steady_clock::now();
+            double elapsed_seconds =
+                std::chrono::duration<double>(search_end - search_start).count();
+            long nps = (elapsed_seconds > 0) ? static_cast<long>(state.nodes / elapsed_seconds) : 0;
+
+            std::cout << "info depth " << state.depth_reached << " nodes " << state.nodes << " nps "
+                      << nps << "\n";
             std::cout << "bestmove " << algebraic_from_square(best_move.from())
                       << algebraic_from_square(best_move.to());
 

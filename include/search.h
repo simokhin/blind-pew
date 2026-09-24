@@ -8,6 +8,7 @@ struct SearchState {
     long nodes = 0;
     std::chrono::steady_clock::time_point deadline;
     bool stopped = false;
+    int depth_reached = 0;
 };
 
 int negamax(Position& position, int depth, SearchState& state, int ply = 0);

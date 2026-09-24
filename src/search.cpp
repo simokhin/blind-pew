@@ -109,6 +109,7 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 
         if (!state.stopped) {
             best_move = current_best_move;
+            state.depth_reached = depth;
         }
     }
 
