@@ -37,7 +37,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 - Mailbox 8x8 board representation
 - Move generation
-- Simple evaluation (material-based)
+- Simple evaluation (material, PST)
 - Simple search (negamax only)
 - Basic UCI support
 - Iterative deepening
@@ -46,4 +46,3 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 ## Next
 
 - Alpha-beta pruning
-- PSTs (piece-square tables) for evaluation
