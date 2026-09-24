@@ -6,6 +6,17 @@
 #include "movegen.h"
 
 int negamax(Position& position, int depth, SearchState& state, int ply) {
+    // Проверяем, остановлен ли поиск
+    if (state.stopped) {
+        return 0;
+    }
+
+    // Смотри каждые 2048 узлов, истекло ли время
+    if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.deadline) {
+        state.stopped = true;
+        return 0;
+    }
+
     state.nodes++;
 
     if (depth == 0) {
@@ -46,6 +57,10 @@ int negamax(Position& position, int depth, SearchState& state, int ply) {
 
         unmake_move(position, m, undo);
 
+        if (state.stopped) {
+            break;
+        }
+
         if (score > best) {
             best = score;
         }
@@ -64,23 +79,36 @@ int negamax(Position& position, int depth, SearchState& state, int ply) {
     return best;
 }
 
-Move find_best_move(Position& position, int depth, SearchState& state) {
+Move find_best_move(Position& position, int max_depth, SearchState& state) {
     MoveList moves = generate_legal_moves(position);
 
-    int best_score = -INFINITE;
+    Move best_move;
 
-    Move best_move = {0, 0};
+    // Iterative deepening
+    for (int depth = 1; depth <= max_depth && !state.stopped; depth++) {
+        int best_score = -INFINITE;
 
-    for (const Move& m : moves) {
-        UndoInfo undo = make_move(position, m);
+        Move current_best_move = {0, 0};
 
-        int score = -negamax(position, depth - 1, state, 1);
+        for (const Move& m : moves) {
+            UndoInfo undo = make_move(position, m);
 
-        unmake_move(position, m, undo);
+            int score = -negamax(position, depth - 1, state, 1);
 
-        if (score > best_score) {
-            best_score = score;
-            best_move = m;
+            unmake_move(position, m, undo);
+
+            if (state.stopped) {
+                break;
+            }
+
+            if (score > best_score) {
+                best_score = score;
+                current_best_move = m;
+            }
+        }
+
+        if (!state.stopped) {
+            best_move = current_best_move;
         }
     }
 
