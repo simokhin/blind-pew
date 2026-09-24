@@ -1,5 +1,6 @@
 #include "uci.h"
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -98,7 +99,25 @@ void uci_loop() {
 
         if (command == "go") {
             SearchState state;
-            Move best_move = find_best_move(position, 4, state);
+
+            // Значения по умолчанию
+            int max_depth = 64;
+            state.deadline = std::chrono::steady_clock::time_point::max();
+
+            std::string token;
+
+            while (stream >> token) {
+                if (token == "depth") {
+                    stream >> max_depth;
+                } else if (token == "movetime") {
+                    int ms;
+                    stream >> ms;
+                    state.deadline =
+                        std::chrono::steady_clock::now() + std::chrono::milliseconds(ms);
+                }
+            }
+
+            Move best_move = find_best_move(position, max_depth, state);
             std::cout << "bestmove " << algebraic_from_square(best_move.from())
                       << algebraic_from_square(best_move.to());
 
