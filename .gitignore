@@ -1,5 +1,6 @@
 build/
 build-release/
+build-windows/
 compile_commands.json
 *.o
 *.out
