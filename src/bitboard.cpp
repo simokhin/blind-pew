@@ -1,6 +1,7 @@
 #include "bitboard.h"
 
 #include "board.h"
+#include "magic_constants.h"
 
 // Строит битборд, в котором установлен один бит на позиции square
 Bitboard square_bb(int square) {
@@ -10,6 +11,8 @@ Bitboard square_bb(int square) {
 Bitboard knight_attacks[64];
 Bitboard king_attacks[64];
 Bitboard pawn_attacks[2][64];
+Bitboard rook_attacks_table[64][4096];
+Bitboard bishop_attacks_table[64][512];
 
 void init_knight_attacks() {
     for (int square = 0; square < 64; square++) {
@@ -180,4 +183,107 @@ Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
     }
 
     return attacks;
+}
+
+Bitboard set_occupancy(int index, Bitboard mask) {
+    Bitboard occupancy = 0;
+    int bit_index = 0;
+
+    for (int square = 0; square < 64; square++) {
+        if (mask & square_bb(square)) {
+            if (index & (1 << bit_index)) {
+                occupancy |= square_bb(square);
+            }
+            bit_index++;
+        }
+    }
+
+    return occupancy;
+}
+
+Bitboard random_sparse_u64(std::mt19937_64& rng) { return rng() & rng() & rng(); }
+
+Bitboard find_rook_magic(int square, std::mt19937_64& rng) {
+    Bitboard mask = rook_mask(square);
+    int bits = rook_relevant_bits[square];
+    while (true) {
+        Bitboard candidate = random_sparse_u64(rng);
+        if (is_magic_valid(square, candidate, mask, bits, rook_attacks_otf)) {
+            return candidate;
+        }
+    }
+}
+
+Bitboard find_bishop_magic(int square, std::mt19937_64& rng) {
+    Bitboard mask = bishop_mask(square);
+    int bits = bishop_relevant_bits[square];
+    while (true) {
+        Bitboard candidate = random_sparse_u64(rng);
+        if (is_magic_valid(square, candidate, mask, bits, bishop_attacks_otf)) {
+            return candidate;
+        }
+    }
+}
+
+void init_rook_magics() {
+    for (int square = 0; square < 64; square++) {
+        Bitboard mask = rook_mask(square);
+        int bits = rook_relevant_bits[square];
+        int count =
+            1 << bits;  // 2^bits - количество возможных комбинаций занятости для этой клетки
+        for (int index = 0; index < count; index++) {
+            // Занятость для этой комбинации
+            Bitboard occupancy = set_occupancy(index, mask);
+
+            // Вычисляем атаку ладьи, исходя из вычисленной занятости
+            Bitboard attack = rook_attacks_otf(square, occupancy);
+
+            int magic_index = (occupancy * rook_magics[square]) >> (64 - bits);
+
+            rook_attacks_table[square][magic_index] = attack;
+        }
+    }
+}
+
+void init_bishop_magics() {
+    for (int square = 0; square < 64; square++) {
+        Bitboard mask = bishop_mask(square);
+        int bits = bishop_relevant_bits[square];
+        int count =
+            1 << bits;  // 2^bits - количество возможных комбинаций занятости для этой клетки
+        for (int index = 0; index < count; index++) {
+            // Занятость для этой комбинации
+            Bitboard occupancy = set_occupancy(index, mask);
+
+            // Вычисляем атаку ладьи, исходя из вычисленной занятости
+            Bitboard attack = bishop_attacks_otf(square, occupancy);
+
+            int magic_index = (occupancy * bishop_magics[square]) >> (64 - bits);
+
+            bishop_attacks_table[square][magic_index] = attack;
+        }
+    }
+}
+
+bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
+                    Bitboard (*attacks_fn)(int, Bitboard)) {
+    std::array<bool, 4096> used{};
+    std::array<Bitboard, 4096> table;
+
+    int count = 1 << bits;
+
+    for (int index = 0; index < count; index++) {
+        Bitboard occupancy = set_occupancy(index, mask);
+        Bitboard attack = attacks_fn(square, occupancy);
+
+        int magic_index = (occupancy * magic) >> (64 - bits);
+
+        if (used[magic_index] && table[magic_index] != attack) {
+            return false;
+        }
+
+        used[magic_index] = true;
+        table[magic_index] = attack;
+    }
+    return true;
 }

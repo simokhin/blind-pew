@@ -8,6 +8,8 @@ int main() {
     init_knight_attacks();
     init_king_attacks();
     init_pawn_attacks();
+    init_rook_magics();
+    init_bishop_magics();
 
     resize_transposition_table(16);
 
