@@ -1,5 +1,7 @@
 #include "search.h"
 
+#include <algorithm>
+
 #include "board.h"
 #include "constants.h"
 #include "evaluate.h"
@@ -51,6 +53,11 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     int best = -INFINITE;
 
     MoveList moves = generate_pseudo_legal_moves(position);
+
+    // Сортировка через MVV-LVA
+    std::sort(moves.begin(), moves.end(), [&position](const Move& a, const Move& b) {
+        return mvv_lva_score(position, a) > mvv_lva_score(position, b);
+    });
 
     bool has_legal_move = false;
 
@@ -171,6 +178,11 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 
     MoveList moves = generate_capture_moves(position);
 
+    // Сортировка через MVV-LVA
+    std::sort(moves.begin(), moves.end(), [&position](const Move& a, const Move& b) {
+        return mvv_lva_score(position, a) > mvv_lva_score(position, b);
+    });
+
     for (const Move& m : moves) {
         UndoInfo undo;
 
@@ -204,4 +216,15 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     }
 
     return best;
+}
+
+int mvv_lva_score(const Position& position, const Move& m) {
+    int victim = static_cast<int>(position.board[m.to()]);
+    int attacker = static_cast<int>(position.board[m.from()]);
+
+    if (m.flag() == MoveFlag::EnPassant) {
+        return values[static_cast<int>(Piece::WP)] * 10 - values[attacker];
+    }
+
+    return values[victim] * 10 - values[attacker];
 }

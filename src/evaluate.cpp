@@ -1,7 +1,5 @@
 #include "evaluate.h"
 
-// Массив ценности фигур
-std::array<int, 13> values = {0, 100, 320, 330, 500, 900, 0, 100, 320, 330, 500, 900, 0};
 
 // PST
 std::array<int, 64> pawn_pst = {

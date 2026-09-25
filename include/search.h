@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "move.h"
+#include "movegen.h"
 #include "position.h"
 
 struct SearchState {
@@ -18,3 +19,4 @@ int negamax(Position& position, int depth, SearchState& state, int alpha = -INFI
             int beta = INFINITE, int ply = 0);
 Move find_best_move(Position& position, int max_depth, SearchState& state);
 int quiescence(Position& position, int alpha, int beta, SearchState& state, int ply);
+int mvv_lva_score(const Position& position, const Move& m);

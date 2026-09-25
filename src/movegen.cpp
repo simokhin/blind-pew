@@ -564,3 +564,5 @@ int MoveList::size() const { return count; }
 const Move& MoveList::operator[](int index) const { return moves[index]; }
 const Move* MoveList::begin() const { return moves.data(); };
 const Move* MoveList::end() const { return moves.data() + count; };
+Move* MoveList::begin() { return moves.data(); };
+Move* MoveList::end() { return moves.data() + count; };

@@ -38,13 +38,13 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 - Mailbox 8x8 board representation
 - Move generation
 - Simple evaluation (material, PST)
-- Simple search (negamax with alpha-beta pruning, quiescence)
+- Simple search (negamax with alpha-beta pruning, quiescence, MVV-LVA)
 - Basic UCI support
 - Iterative deepening
 - Simple benchmark
 
 ## Next
 
-- Improve evaluation
-- Move ordering
+- Better evaluation
+- Better move ordering
 - Transpositional table

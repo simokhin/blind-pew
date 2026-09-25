@@ -20,6 +20,8 @@ class MoveList {
     const Move& operator[](int index) const;
     const Move* begin() const;
     const Move* end() const;
+    Move* begin();
+    Move* end();
 
    private:
     std::array<Move, MAX_MOVES> moves;
