@@ -1,6 +1,5 @@
 #include "evaluate.h"
 
-
 // PST
 std::array<int, 64> pawn_pst = {
     0,  0,  0,  0,  0,  0,  0,  0,  5,  10, 10, -20, -20, 10, 10, 5,  5, -5, -10, 0,  0,  -10,
@@ -44,8 +43,18 @@ std::array<int, 64> king_pst_mg = {
     -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40, -30,
 };
 
+std::array<int, 64> king_pst_eg = {
+    -50, -30, -30, -30, -30, -30, -30, -50, -30, -30, 0,   0,   0,   0,   -30, -30,
+    -30, -10, 20,  30,  30,  20,  -10, -30, -30, -10, 30,  40,  40,  30,  -10, -30,
+    -30, -10, 30,  40,  40,  30,  -10, -30, -30, -10, 20,  30,  30,  20,  -10, -30,
+    -30, -20, -10, 0,   0,   -10, -20, -30, -50, -40, -30, -20, -20, -30, -40, -50,
+};
+
+std::array<int, 13> phase_weights = {0, 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0};
+
 int evaluate(const Position& position) {
     int evaluation = 0;
+    int phase = compute_phase(position);
 
     for (int square = 0; square < 64; square++) {
         Piece piece = position.board[square];
@@ -58,7 +67,7 @@ int evaluate(const Position& position) {
         int value = values[static_cast<int>(piece)];
 
         // Бонус за расположение фигур
-        value += pst_bonus(piece, square);
+        value += pst_bonus(piece, square, phase);
 
         if (color_of(piece) == position.side_to_move) {
             evaluation += value;
@@ -70,7 +79,7 @@ int evaluate(const Position& position) {
     return evaluation;
 }
 
-int pst_bonus(Piece piece, int square) {
+int pst_bonus(Piece piece, int square, int phase) {
     switch (piece) {
         case Piece::WP:
             return pawn_pst[square];
@@ -92,11 +101,44 @@ int pst_bonus(Piece piece, int square) {
             return queen_pst[square];
         case Piece::BQ:
             return queen_pst[mirror_square(square)];
-        case Piece::WK:
-            return king_pst_mg[square];
-        case Piece::BK:
-            return king_pst_mg[mirror_square(square)];
+        case Piece::WK: {
+            int mg = king_pst_mg[square];
+            int eg = king_pst_eg[square];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::BK: {
+            int mg = king_pst_mg[mirror_square(square)];
+            int eg = king_pst_eg[mirror_square(square)];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
         default:
             return 0;
     }
+}
+
+// Считает, находится ли игра на стадии эндшпиля
+int compute_phase(const Position& position) {
+    int phase = TOTAL_PHASE;
+
+    for (int square = 0; square < 64; square++) {
+        Piece piece = position.board[square];
+
+        if (piece != Piece::None) {
+            phase -= phase_weights[static_cast<int>(piece)];
+        }
+    }
+
+    // Держим phase в границах от 0 до 24
+    if (phase < 0) {
+        phase = 0;
+    }
+    if (phase > TOTAL_PHASE) {
+        phase = TOTAL_PHASE;
+    }
+
+    phase = (phase * 256 + TOTAL_PHASE / 2) / TOTAL_PHASE;
+
+    return phase;
 }

@@ -37,7 +37,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 - Mailbox 8x8 board representation
 - Move generation
-- Simple evaluation 
+- Simple tapered evaluation 
   - material
   - PST
 - Simple search
