@@ -678,6 +678,50 @@ MoveList generate_pawn_moves_bb(const Position& position, int square) {
     return moves;
 }
 
+bool is_square_attacked_bb(const Position& position, int square, Color by_color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+
+    if ((knight_attacks[square] & position.by_color[static_cast<int>(by_color)] &
+         position.by_piece_type[static_cast<int>(PieceType::Knight)]) != 0) {
+        return true;
+    }
+
+    if ((king_attacks[square] & position.by_color[static_cast<int>(by_color)] &
+         position.by_piece_type[static_cast<int>(PieceType::King)]) != 0) {
+        return true;
+    }
+
+    if ((pawn_attacks[static_cast<int>(opposite_color(by_color))][square] &
+         position.by_color[static_cast<int>(by_color)] &
+         position.by_piece_type[static_cast<int>(PieceType::Pawn)]) != 0) {
+        return true;
+    }
+
+    Bitboard relevant = occupancy & rook_mask(square);
+    int bits = rook_relevant_bits[square];
+    int magic_index = (relevant * rook_magics[square]) >> (64 - bits);
+    Bitboard rook_attacks_here = rook_attacks_table[square][magic_index];
+
+    if ((rook_attacks_here & position.by_color[static_cast<int>(by_color)] &
+         (position.by_piece_type[static_cast<int>(PieceType::Rook)] |
+          position.by_piece_type[static_cast<int>(PieceType::Queen)])) != 0) {
+        return true;
+    }
+
+    relevant = occupancy & bishop_mask(square);
+    bits = bishop_relevant_bits[square];
+    magic_index = (relevant * bishop_magics[square]) >> (64 - bits);
+    Bitboard bishop_attacks_here = bishop_attacks_table[square][magic_index];
+
+    if ((bishop_attacks_here & position.by_color[static_cast<int>(by_color)] &
+         (position.by_piece_type[static_cast<int>(PieceType::Bishop)] |
+          position.by_piece_type[static_cast<int>(PieceType::Queen)])) != 0) {
+        return true;
+    }
+
+    return false;
+}
+
 void MoveList::add(const Move& move) {
     moves[count] = move;
     count++;
