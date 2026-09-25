@@ -111,8 +111,12 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
 
     bool has_legal_move = false;
 
+    int move_index = 0;  // Нужен для LMR
+
     for (const Move& m : moves) {
         UndoInfo undo;
+
+        bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
 
         if (!make_legal_move(position, m, undo)) {
             continue;
@@ -123,8 +127,13 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         bool gives_check =
             is_square_attacked(position, opp_king_square, opposite_color(position.side_to_move));
 
+        // Проверяем, выполнены ли условия для LMR
+        bool can_reduce = depth >= 3 && move_index > 3 && !is_capture && !gives_check &&
+                          !in_check && m != state.killers[ply][0] && m != state.killers[ply][1];
+
         bool is_first_move = !has_legal_move;
         has_legal_move = true;
+        move_index++;
 
         // Добавляем хэш позиции в историю
         state.history.push_back(position.zobrist_hash);
@@ -137,8 +146,10 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
             score =
                 -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha, ply + 1);
         } else {
-            score = -negamax(position, gives_check ? depth : depth - 1, state, -alpha - 1, -alpha,
-                             ply + 1);
+            int reduction = can_reduce ? 1 : 0;
+            int search_depth = gives_check ? depth : std::max(depth - 1 - reduction, 0);
+
+            score = -negamax(position, search_depth, state, -alpha - 1, -alpha, ply + 1);
             if (score > alpha && score < beta) {
                 score = -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha,
                                  ply + 1);
