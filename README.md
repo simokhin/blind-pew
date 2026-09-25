@@ -50,6 +50,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - uci / isready / quit
   - position (startpos, fen, moves)
   - go (depth, movetime, wtime/btime/winc/binc)
+  - setoption (Hash)
 - Simple benchmark
 
 ## Next

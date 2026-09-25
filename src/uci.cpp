@@ -11,6 +11,7 @@
 #include "movegen.h"
 #include "position.h"
 #include "search.h"
+#include "tt.h"
 
 void uci_loop() {
     std::string line;
@@ -30,6 +31,7 @@ void uci_loop() {
         if (command == "uci") {
             std::cout << "id name " << ENGINE_NAME << "\n";
             std::cout << "id author " << ENGINE_AUTHOR << "\n";
+            std::cout << "option name Hash type spin default 16 min 1 max 1024\n";
             std::cout << "uciok\n";
         }
 
@@ -193,6 +195,22 @@ void uci_loop() {
             int depth = 4;
             stream >> depth;
             run_bench(depth);
+        }
+
+        if (command == "setoption") {
+            std::string token;
+
+            while (stream >> token) {
+                if (token == "Hash") {
+                    // Сбрасываем слово "value"
+                    stream >> token;
+
+                    int size_mb;
+                    stream >> size_mb;
+
+                    resize_transposition_table(size_mb);
+                }
+            }
         }
     }
 }
