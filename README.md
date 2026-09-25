@@ -48,6 +48,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - transposition table
   - null move pruning
   - killer moves and history heuristic
+  - principal variation search
 - Basic UCI support
   - uci / isready / quit
   - position (startpos, fen, moves)
