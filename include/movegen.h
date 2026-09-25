@@ -39,3 +39,9 @@ bool is_square_attacked(const Position& position, int square, Color by_color);
 MoveList generate_pseudo_legal_moves(const Position& position);
 MoveList generate_legal_moves(const Position& position);
 MoveList generate_capture_moves(const Position& position);
+
+MoveList generate_knight_moves_bb(const Position& position, int square);
+MoveList generate_king_moves_bb(const Position& position, int square);
+MoveList generate_rook_moves_bb(const Position& position, int square);
+MoveList generate_bishop_moves_bb(const Position& position, int square);
+MoveList generate_queen_moves_bb(const Position& position, int square);

@@ -32,3 +32,5 @@ void init_bishop_magics();
 
 bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
                     Bitboard (*attacks_fn)(int, Bitboard));
+
+int pop_lsb(Bitboard& bb);

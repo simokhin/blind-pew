@@ -1,6 +1,8 @@
 #include "movegen.h"
 
+#include "bitboard.h"
 #include "board.h"
+#include "magic_constants.h"
 #include "move.h"
 
 std::array<PromotionPiece, 4> promotion_pieces = {
@@ -527,6 +529,91 @@ MoveList generate_capture_moves(const Position& position) {
             default:
                 break;
         }
+    }
+
+    return moves;
+}
+
+MoveList generate_knight_moves_bb(const Position& position, int square) {
+    MoveList moves;
+
+    Bitboard attacks = knight_attacks[square];
+
+    // Убираем клетки, занятые своими фигурами
+    attacks &= ~position.by_color[static_cast<int>(position.side_to_move)];
+
+    while (attacks != 0) {
+        int to = pop_lsb(attacks);
+        moves.add(Move(square, to));
+    }
+
+    return moves;
+}
+
+MoveList generate_king_moves_bb(const Position& position, int square) {
+    MoveList moves;
+
+    Bitboard attacks = king_attacks[square];
+
+    // Убираем клетки, занятые своими фигурами
+    attacks &= ~position.by_color[static_cast<int>(position.side_to_move)];
+
+    while (attacks != 0) {
+        int to = pop_lsb(attacks);
+        moves.add(Move(square, to));
+    }
+
+    return moves;
+}
+
+MoveList generate_rook_moves_bb(const Position& position, int square) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+
+    Bitboard relevant_occupancy = occupancy & rook_mask(square);
+
+    int bits = rook_relevant_bits[square];
+    int magic_index = (relevant_occupancy * rook_magics[square]) >> (64 - bits);
+
+    Bitboard attacks = rook_attacks_table[square][magic_index];
+    attacks &= ~position.by_color[static_cast<int>(position.side_to_move)];
+
+    MoveList moves;
+
+    while (attacks != 0) {
+        int to = pop_lsb(attacks);
+        moves.add(Move(square, to));
+    }
+
+    return moves;
+}
+
+MoveList generate_bishop_moves_bb(const Position& position, int square) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+
+    Bitboard relevant_occupancy = occupancy & bishop_mask(square);
+
+    int bits = bishop_relevant_bits[square];
+    int magic_index = (relevant_occupancy * bishop_magics[square]) >> (64 - bits);
+
+    Bitboard attacks = bishop_attacks_table[square][magic_index];
+    attacks &= ~position.by_color[static_cast<int>(position.side_to_move)];
+
+    MoveList moves;
+
+    while (attacks != 0) {
+        int to = pop_lsb(attacks);
+        moves.add(Move(square, to));
+    }
+
+    return moves;
+}
+
+MoveList generate_queen_moves_bb(const Position& position, int square) {
+    MoveList moves = generate_rook_moves_bb(position, square);
+    MoveList bishop_moves = generate_bishop_moves_bb(position, square);
+
+    for (const Move& m : bishop_moves) {
+        moves.add(m);
     }
 
     return moves;

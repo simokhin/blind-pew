@@ -287,3 +287,9 @@ bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
     }
     return true;
 }
+
+int pop_lsb(Bitboard& bb) {
+    int bit_number = __builtin_ctzll(bb);
+    bb &= bb - 1;
+    return bit_number;
+}
