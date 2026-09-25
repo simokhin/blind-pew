@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "evaluate.h"
 #include "movegen.h"
+#include "tt.h"
 
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     // Определяем, чей ход был до хода
@@ -56,13 +57,46 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     }
 
     int best = -INFINITE;
+    Move best_move;
 
+    // Transposition table
+    int original_alpha = alpha;
+
+    bool have_tt_move = false;
+    Move tt_move = {0, 0};
+
+    TTEntry* entry = tt_probe(position.zobrist_hash);
+    if (entry != nullptr) {
+        have_tt_move = true;
+        tt_move = entry->best_move;
+
+        if (entry->depth >= depth) {
+            int tt_score = decode_mate_score(entry->score, ply);
+            if (entry->flag == TTFlag::Exact) {
+                return tt_score;
+            } else if (entry->flag == TTFlag::LowerBound && tt_score >= beta) {
+                return tt_score;
+            } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
+                return tt_score;
+            }
+        }
+    }
+
+    // Генерируем все псевдолегальные ходы
     MoveList moves = generate_pseudo_legal_moves(position);
 
-    // Сортировка через MVV-LVA
-    std::sort(moves.begin(), moves.end(), [&position](const Move& a, const Move& b) {
-        return mvv_lva_score(position, a) > mvv_lva_score(position, b);
-    });
+    // Сортировка через MVV-LVA с поправкой на Transposposition table
+    std::sort(moves.begin(), moves.end(),
+              [&position, have_tt_move, tt_move](const Move& a, const Move& b) {
+                  if (have_tt_move) {
+                      if (a == tt_move) {
+                          return true;
+                      } else if (b == tt_move) {
+                          return false;
+                      }
+                  }
+                  return mvv_lva_score(position, a) > mvv_lva_score(position, b);
+              });
 
     bool has_legal_move = false;
 
@@ -99,6 +133,7 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         // Обвновляем оценку
         if (score > best) {
             best = score;
+            best_move = m;
         }
 
         // Обновляем альфу
@@ -120,6 +155,21 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
             return -(MATE - ply);
         }
         return 0;
+    }
+
+    // Определяем флаг для записи в таблице транспозиций
+    TTFlag flag;
+    if (!state.stopped) {
+        if (best <= original_alpha) {
+            flag = TTFlag::UpperBound;
+        } else if (best >= beta) {
+            flag = TTFlag::LowerBound;
+        } else {
+            flag = TTFlag::Exact;
+        }
+
+        // Сохраняем запись в таблицу
+        tt_store(position.zobrist_hash, depth, encode_mate_score(best, ply), best_move, flag);
     }
 
     return best;
@@ -161,6 +211,13 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 
         if (!state.stopped) {
             best_move = current_best_move;
+
+            // Ставим лучший найденный ход в начало списка
+            auto it = std::find(moves.begin(), moves.end(), best_move);
+            if (it != moves.end()) {
+                std::swap(*it, *moves.begin());
+            }
+
             state.depth_reached = depth;
         }
     }

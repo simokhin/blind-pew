@@ -37,14 +37,22 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 - Mailbox 8x8 board representation
 - Move generation
-- Simple evaluation (material, PST)
-- Simple search (negamax with alpha-beta pruning, quiescence, MVV-LVA)
+- Simple evaluation 
+  - material
+  - PST
+- Simple search
+  - negamax with alpha-beta pruning
+  - quiescence
+  - MVV-LVA
+  - transposition table
+  - iterative deepening
 - Basic UCI support
-- Iterative deepening
+  - uci / isready / quit
+  - position (startpos, fen, moves)
+  - go (depth, movetime, wtime/btime/winc/binc)
 - Simple benchmark
 
 ## Next
 
 - Better evaluation
 - Better move ordering
-- Transpositional table

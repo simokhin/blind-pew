@@ -24,6 +24,7 @@ class Move {
     int to() const;
     MoveFlag flag() const;
     PromotionPiece promotion() const;
+    bool operator==(const Move& other) const;
 
    private:
     uint16_t data;
