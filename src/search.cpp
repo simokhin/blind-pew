@@ -106,18 +106,8 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     // Генерируем все псевдолегальные ходы
     MoveList moves = generate_pseudo_legal_moves(position);
 
-    // Сортировка через MVV-LVA с поправкой на Transposposition table
-    std::sort(moves.begin(), moves.end(),
-              [&position, have_tt_move, tt_move](const Move& a, const Move& b) {
-                  if (have_tt_move) {
-                      if (a == tt_move) {
-                          return true;
-                      } else if (b == tt_move) {
-                          return false;
-                      }
-                  }
-                  return mvv_lva_score(position, a) > mvv_lva_score(position, b);
-              });
+    // Сортируем ходы
+    sort_moves(moves, position, state, ply, have_tt_move, tt_move);
 
     bool has_legal_move = false;
 
@@ -171,6 +161,16 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
 
         // Отсекаем остальные варианты, если альфа больше беты
         if (alpha >= beta) {
+            // Если тихий ход вызывал отсечение, сохраняем его
+            bool is_capture =
+                position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
+
+            if (!is_capture && m != state.killers[ply][0]) {
+                // Меняем ходы местами
+                state.killers[ply][1] = state.killers[ply][0];
+                state.killers[ply][0] = m;
+            }
+
             break;
         }
     }
@@ -393,4 +393,33 @@ bool has_non_pawn_material(const Position& position, Color color) {
     }
 
     return false;
+}
+
+void sort_moves(MoveList& moves, const Position& position, const SearchState& state, int ply,
+                bool have_tt_move, const Move& tt_move) {
+    // Сортировка killer moves
+    auto move_score = [&](const Move& m) {
+        int score = mvv_lva_score(position, m);
+        if (score <= 0) {
+            if (m == state.killers[ply][0]) {
+                score = 51;
+            } else if (m == state.killers[ply][1]) {
+                score = 50;
+            }
+        }
+        return score;
+    };
+
+    // Сортировка через MVV-LVA с поправкой на Transposposition table
+    std::sort(moves.begin(), moves.end(),
+              [&position, have_tt_move, tt_move, &move_score](const Move& a, const Move& b) {
+                  if (have_tt_move) {
+                      if (a == tt_move) {
+                          return true;
+                      } else if (b == tt_move) {
+                          return false;
+                      }
+                  }
+                  return move_score(a) > move_score(b);
+              });
 }

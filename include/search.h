@@ -15,6 +15,7 @@ struct SearchState {
     std::vector<uint64_t> history;
     std::array<std::array<Move, MAX_PLY>, MAX_PLY> pv_table;
     std::array<int, MAX_PLY> pv_length;
+    std::array<std::array<Move, 2>, MAX_PLY> killers;
 };
 
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo);
@@ -31,3 +32,6 @@ int mvv_lva_score(const Position& position, const Move& m);
 void print_search_info(int depth, const SearchState& state, int best_score, double elapsed_seconds);
 
 bool has_non_pawn_material(const Position& position, Color color);
+
+void sort_moves(MoveList& moves, const Position& position, const SearchState& state, int ply,
+                bool have_tt_move, const Move& tt_move);
