@@ -46,6 +46,11 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
 
     state.nodes++;
 
+    // Проверяем, повторялась ли позиция
+    if (std::count(state.history.begin(), state.history.end(), position.zobrist_hash) >= 2) {
+        return 0;
+    }
+
     if (depth == 0) {
         return quiescence(position, alpha, beta, state, ply);
     }
@@ -75,11 +80,17 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
 
         has_legal_move = true;
 
+        // Добавляем хэш позиции в историю
+        state.history.push_back(position.zobrist_hash);
+
         // Вызываем функцию рекурсивно
         int score =
             -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha, ply + 1);
 
         unmake_move(position, m, undo);
+
+        // Удаляем хэш позиции из истории
+        state.history.pop_back();
 
         if (state.stopped) {
             break;
@@ -128,9 +139,15 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
         for (const Move& m : moves) {
             UndoInfo undo = make_move(position, m);
 
+            // Добавляем хэш позиции в историю
+            state.history.push_back(position.zobrist_hash);
+
             int score = -negamax(position, depth - 1, state, -INFINITE, INFINITE, 1);
 
             unmake_move(position, m, undo);
+
+            // Удаляем хэш позиции из истории
+            state.history.pop_back();
 
             if (state.stopped) {
                 break;

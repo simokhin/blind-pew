@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include <vector>
 
 #include "constants.h"
 #include "move.h"
@@ -11,6 +12,7 @@ struct SearchState {
     std::chrono::steady_clock::time_point deadline;
     bool stopped = false;
     int depth_reached = 0;
+    std::vector<uint64_t> history;
 };
 
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo);

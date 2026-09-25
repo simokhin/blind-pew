@@ -16,6 +16,7 @@ void uci_loop() {
     std::string line;
 
     Position position = parse_fen(START_FEN);
+    std::vector<uint64_t> position_history;
 
     while (std::getline(std::cin, line)) {
         std::istringstream stream(line);
@@ -42,6 +43,8 @@ void uci_loop() {
 
             if (sub_command == "startpos") {
                 position = parse_fen(START_FEN);
+                position_history.clear();
+                position_history.push_back(position.zobrist_hash);
             } else if (sub_command == "fen") {
                 std::string fen;
 
@@ -52,6 +55,8 @@ void uci_loop() {
                 }
 
                 position = parse_fen(fen);
+                position_history.clear();
+                position_history.push_back(position.zobrist_hash);
             }
 
             std::string moves_token;
@@ -91,6 +96,7 @@ void uci_loop() {
                                 continue;
                             }
                             make_move(position, m);
+                            position_history.push_back(position.zobrist_hash);
                             break;
                         }
                     }
@@ -146,6 +152,8 @@ void uci_loop() {
             }
 
             auto search_start = std::chrono::steady_clock::now();
+
+            state.history = position_history;
 
             Move best_move = find_best_move(position, max_depth, state);
 
