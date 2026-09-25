@@ -45,3 +45,4 @@ MoveList generate_king_moves_bb(const Position& position, int square);
 MoveList generate_rook_moves_bb(const Position& position, int square);
 MoveList generate_bishop_moves_bb(const Position& position, int square);
 MoveList generate_queen_moves_bb(const Position& position, int square);
+MoveList generate_pawn_moves_bb(const Position& position, int square);

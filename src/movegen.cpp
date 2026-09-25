@@ -619,6 +619,65 @@ MoveList generate_queen_moves_bb(const Position& position, int square) {
     return moves;
 }
 
+MoveList generate_pawn_moves_bb(const Position& position, int square) {
+    MoveList moves;
+
+    Bitboard attacks = pawn_attacks[static_cast<int>(position.side_to_move)][square];
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    // Убираем клетки без вражеской фигуры
+    attacks &= position.by_color[static_cast<int>(opposite_color(position.side_to_move))];
+
+    if (position.en_passant_target != -1 &&
+        (pawn_attacks[static_cast<int>(position.side_to_move)][square] &
+         square_bb(position.en_passant_target))) {
+        moves.add(Move(square, position.en_passant_target, MoveFlag::EnPassant));
+    }
+
+    int promotion_rank = (position.side_to_move == Color::White) ? 7 : 0;
+
+    while (attacks != 0) {
+        int to = pop_lsb(attacks);
+
+        if (rank_of(to) == promotion_rank) {
+            for (PromotionPiece p : promotion_pieces) {
+                moves.add(Move(square, to, MoveFlag::Promotion, p));
+            }
+        } else {
+            moves.add(Move(square, to));
+        }
+    }
+
+    int direction = (position.side_to_move == Color::White) ? 1 : -1;
+    int start_rank = (direction == 1) ? 1 : 6;
+
+    int new_rank = rank + direction;
+    int to = square_of(new_rank, file);
+    bool blocked = occupancy & square_bb(to);
+
+    if (new_rank == promotion_rank && !blocked) {
+        for (PromotionPiece p : promotion_pieces) {
+            moves.add(Move(square, to, MoveFlag::Promotion, p));
+        }
+    } else if (!blocked && is_valid_square(new_rank, file)) {
+        moves.add(Move(square, to));
+    }
+
+    if (rank == start_rank && !blocked) {
+        int double_pawn_move_rank = new_rank + direction;
+        int double_pawn_move_to = square_of(double_pawn_move_rank, file);
+        blocked = occupancy & square_bb(double_pawn_move_to);
+
+        if (!blocked) {
+            moves.add(Move(square, double_pawn_move_to));
+        }
+    }
+    return moves;
+}
+
 void MoveList::add(const Move& move) {
     moves[count] = move;
     count++;
