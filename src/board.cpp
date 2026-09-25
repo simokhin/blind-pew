@@ -3,6 +3,24 @@
 #include <array>
 #include <iostream>
 
+PieceType piece_type_of(Piece piece) {
+    if (piece == Piece::BP || piece == Piece::WP) {
+        return PieceType::Pawn;
+    } else if (piece == Piece::BN || piece == Piece::WN) {
+        return PieceType::Knight;
+    } else if (piece == Piece::BB || piece == Piece::WB) {
+        return PieceType::Bishop;
+    } else if (piece == Piece::BR || piece == Piece::WR) {
+        return PieceType::Rook;
+    } else if (piece == Piece::BQ || piece == Piece::WQ) {
+        return PieceType::Queen;
+    } else if (piece == Piece::BK || piece == Piece::WK) {
+        return PieceType::King;
+    } else {
+        return PieceType::None;
+    }
+}
+
 // Определить цвет фигуры
 Color color_of(Piece piece) {
     int value = static_cast<int>(piece);

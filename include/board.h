@@ -5,6 +5,10 @@
 
 enum class Piece { None, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK };
 
+enum class PieceType { Pawn, Knight, Bishop, Rook, Queen, King, None };
+
+PieceType piece_type_of(Piece piece);
+
 enum class Square {
     A1,
     B1,
