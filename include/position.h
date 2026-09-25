@@ -40,3 +40,6 @@ int king_square_of(const Position& position, Color color);
 void put_piece(Position& position, Piece piece, int square);
 void remove_piece(Position& position, int square);
 void move_piece(Position& position, int from, int to);
+
+int make_null_move(Position& position);
+void unmake_null_move(Position& position, int old_en_passant_target);

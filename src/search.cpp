@@ -34,7 +34,8 @@ bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     return true;
 }
 
-int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply) {
+int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
+            bool allow_null) {
     state.pv_length[ply] = 0;
 
     // Проверяем, остановлен ли поиск
@@ -82,6 +83,23 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
             } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
                 return tt_score;
             }
+        }
+    }
+
+    // Null move pruning
+    bool in_check = is_square_attacked(position, king_square_of(position, position.side_to_move),
+                                       opposite_color(position.side_to_move));
+
+    if (!in_check && has_non_pawn_material(position, position.side_to_move) && depth >= 3 &&
+        allow_null) {
+        constexpr int R = 2;
+
+        int saved_en_passant_sq = make_null_move(position);
+        int null_score = -negamax(position, depth - 1 - R, state, -beta, -beta + 1, ply + 1, false);
+        unmake_null_move(position, saved_en_passant_sq);
+
+        if (!state.stopped && null_score >= beta) {
+            return null_score;
         }
     }
 
@@ -359,4 +377,20 @@ void print_search_info(int depth, const SearchState& state, int best_score,
     }
 
     std::cout << "\n";
+}
+
+bool has_non_pawn_material(const Position& position, Color color) {
+    Piece pawn = (color == Color::White) ? Piece::WP : Piece::BP;
+    Piece king = (color == Color::White) ? Piece::WK : Piece::BK;
+
+    for (int square = 0; square < 64; square++) {
+        Piece piece = position.board[square];
+
+        // Если в позиции есть фигура, отличающаяся от пешки или короля, возвращаем true
+        if (color_of(piece) == color && piece != pawn && piece != king) {
+            return true;
+        }
+    }
+
+    return false;
 }

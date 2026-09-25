@@ -260,3 +260,34 @@ void move_piece(Position& position, int from, int to) {
     position.board[to] = piece;
     position.board[from] = Piece::None;
 }
+
+int make_null_move(Position& position) {
+    // Сохраняем en passant поле
+    int old_en_passant_target = position.en_passant_target;
+
+    // Если оно было установлено, вычитыем его из хэша
+    if (old_en_passant_target != -1) {
+        position.zobrist_hash ^= en_passant_file_keys[file_of(old_en_passant_target)];
+    }
+
+    // Обнуляем поле
+    position.en_passant_target = -1;
+
+    // Вычитаем из хэша сторону
+    position.side_to_move = opposite_color(position.side_to_move);
+    position.zobrist_hash ^= side_to_move_key;
+
+    return old_en_passant_target;
+}
+
+void unmake_null_move(Position& position, int old_en_passant_target) {
+    // Возвращаем параметры
+    position.en_passant_target = old_en_passant_target;
+    position.side_to_move = opposite_color(position.side_to_move);
+    position.zobrist_hash ^= side_to_move_key;
+
+    // Возвращаем en passant поле в hash, если оно было установлен
+    if (old_en_passant_target != -1) {
+        position.zobrist_hash ^= en_passant_file_keys[file_of(old_en_passant_target)];
+    }
+}

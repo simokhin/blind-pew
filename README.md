@@ -42,10 +42,11 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - PST
 - Simple search
   - negamax with alpha-beta pruning
+  - iterative deepening
   - quiescence
   - MVV-LVA
   - transposition table
-  - iterative deepening
+  - null move pruning
 - Basic UCI support
   - uci / isready / quit
   - position (startpos, fen, moves)

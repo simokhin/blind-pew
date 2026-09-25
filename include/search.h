@@ -20,7 +20,7 @@ struct SearchState {
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo);
 
 int negamax(Position& position, int depth, SearchState& state, int alpha = -INFINITE,
-            int beta = INFINITE, int ply = 0);
+            int beta = INFINITE, int ply = 0, bool allow_null = true);
 
 Move find_best_move(Position& position, int max_depth, SearchState& state);
 
@@ -29,3 +29,5 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 int mvv_lva_score(const Position& position, const Move& m);
 
 void print_search_info(int depth, const SearchState& state, int best_score, double elapsed_seconds);
+
+bool has_non_pawn_material(const Position& position, Color color);
