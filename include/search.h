@@ -27,3 +27,5 @@ Move find_best_move(Position& position, int max_depth, SearchState& state);
 int quiescence(Position& position, int alpha, int beta, SearchState& state, int ply);
 
 int mvv_lva_score(const Position& position, const Move& m);
+
+void print_search_info(int depth, const SearchState& state, int best_score, double elapsed_seconds);

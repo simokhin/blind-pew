@@ -237,19 +237,13 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
                 std::swap(*it, *moves.begin());
             }
 
-            // Печатаем информацию о поиске, используя principal variation table
+            // Печатаем информацию о поиске
             state.depth_reached = depth;
             auto search_end = std::chrono::steady_clock::now();
             double elapsed_seconds =
                 std::chrono::duration<double>(search_end - search_start).count();
-            long nps = (elapsed_seconds > 0) ? static_cast<long>(state.nodes / elapsed_seconds) : 0;
 
-            std::cout << "info depth " << depth << " nodes " << state.nodes << " nps " << nps
-                      << " pv ";
-            for (int i = 0; i < state.pv_length[0]; i++) {
-                std::cout << move_to_uci(state.pv_table[0][i]) << " ";
-            }
-            std::cout << "\n";
+            print_search_info(depth, state, best_score, elapsed_seconds);
         }
     }
 
@@ -334,4 +328,35 @@ int mvv_lva_score(const Position& position, const Move& m) {
     }
 
     return values[victim] * 10 - values[attacker];
+}
+
+void print_search_info(int depth, const SearchState& state, int best_score,
+                       double elapsed_seconds) {
+    // Вычисляем NPS
+    long nps = (elapsed_seconds > 0) ? static_cast<long>(state.nodes / elapsed_seconds) : 0;
+
+    // Печатаем вывод
+    std::cout << "info depth " << depth << " nodes " << state.nodes << " time "
+              << static_cast<long>(elapsed_seconds * 1000) << " nps " << nps;
+
+    // Печатаем, сколько ходов до мата либо обычную оценку позиции
+    if (best_score >= MATE_THRESHOLD) {
+        int plies_to_mate = MATE - best_score;
+        int moves_to_mate = (plies_to_mate + 1) / 2;
+        std::cout << " score mate " << moves_to_mate;
+    } else if (best_score <= -MATE_THRESHOLD) {
+        int plies_to_mate = MATE + best_score;
+        int moves_to_mate = (plies_to_mate + 1) / 2;
+        std::cout << " score mate -" << moves_to_mate;
+    } else {
+        std::cout << " score cp " << best_score;
+    }
+
+    // Печатать PV
+    std::cout << " pv ";
+    for (int i = 0; i < state.pv_length[0]; i++) {
+        std::cout << move_to_uci(state.pv_table[0][i]) << " ";
+    }
+
+    std::cout << "\n";
 }
