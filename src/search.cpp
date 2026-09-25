@@ -123,14 +123,27 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         bool gives_check =
             is_square_attacked(position, opp_king_square, opposite_color(position.side_to_move));
 
+        bool is_first_move = !has_legal_move;
         has_legal_move = true;
 
         // Добавляем хэш позиции в историю
         state.history.push_back(position.zobrist_hash);
 
         // Вызываем функцию рекурсивно
-        int score =
-            -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha, ply + 1);
+        // Principal variation search
+        int score;
+        if (is_first_move) {
+            // Если это первый ход, то ищем с широким окном
+            score =
+                -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha, ply + 1);
+        } else {
+            score = -negamax(position, gives_check ? depth : depth - 1, state, -alpha - 1, -alpha,
+                             ply + 1);
+            if (score > alpha && score < beta) {
+                score = -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha,
+                                 ply + 1);
+            }
+        }
 
         unmake_move(position, m, undo);
 
