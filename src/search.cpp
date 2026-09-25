@@ -165,10 +165,16 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
             bool is_capture =
                 position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
 
-            if (!is_capture && m != state.killers[ply][0]) {
+            if (!is_capture) {
+                // Обновляем history heuristic
+                update_history_heuristic(state, position.side_to_move, m.from(), m.to(),
+                                         depth * depth);
+
                 // Меняем ходы местами
-                state.killers[ply][1] = state.killers[ply][0];
-                state.killers[ply][0] = m;
+                if (m != state.killers[ply][0]) {
+                    state.killers[ply][1] = state.killers[ply][0];
+                    state.killers[ply][0] = m;
+                }
             }
 
             break;
@@ -405,6 +411,11 @@ void sort_moves(MoveList& moves, const Position& position, const SearchState& st
                 score = 51;
             } else if (m == state.killers[ply][1]) {
                 score = 50;
+            } else {
+                // Ходы из history heuristic
+                score = std::min(state.history_heuristic[static_cast<int>(position.side_to_move)]
+                                                        [m.from()][m.to()],
+                                 49);
             }
         }
         return score;
@@ -422,4 +433,14 @@ void sort_moves(MoveList& moves, const Position& position, const SearchState& st
                   }
                   return move_score(a) > move_score(b);
               });
+}
+
+void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus) {
+    int clamped_bonus = std::clamp(bonus, -MAX_HISTORY, MAX_HISTORY);
+
+    // Достаём уже накопленную ценность хода
+    int& value = state.history_heuristic[static_cast<int>(side)][from][to];
+
+    // Прибавляем к ней бонус
+    value += clamped_bonus - value * std::abs(clamped_bonus) / MAX_HISTORY;
 }

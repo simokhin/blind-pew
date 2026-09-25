@@ -13,9 +13,10 @@ struct SearchState {
     bool stopped = false;
     int depth_reached = 0;
     std::vector<uint64_t> history;
-    std::array<std::array<Move, MAX_PLY>, MAX_PLY> pv_table;
-    std::array<int, MAX_PLY> pv_length;
-    std::array<std::array<Move, 2>, MAX_PLY> killers;
+    std::array<std::array<Move, MAX_PLY>, MAX_PLY> pv_table = {};
+    std::array<int, MAX_PLY> pv_length = {};
+    std::array<std::array<Move, 2>, MAX_PLY> killers = {};
+    std::array<std::array<std::array<int, 64>, 64>, 2> history_heuristic = {};
 };
 
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo);
@@ -35,3 +36,5 @@ bool has_non_pawn_material(const Position& position, Color color);
 
 void sort_moves(MoveList& moves, const Position& position, const SearchState& state, int ply,
                 bool have_tt_move, const Move& tt_move);
+
+void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus);

@@ -37,7 +37,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 - Mailbox 8x8 board representation
 - Move generation
-- Simple tapered evaluation 
+- Simple tapered evaluation
   - material
   - PST
 - Simple search
@@ -47,7 +47,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - MVV-LVA
   - transposition table
   - null move pruning
-  - killer moves
+  - killer moves and history heuristic
 - Basic UCI support
   - uci / isready / quit
   - position (startpos, fen, moves)
