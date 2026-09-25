@@ -1,6 +1,8 @@
 #pragma once
+#include <array>
 #include <cstdint>
 
+#include "bitboard.h"
 #include "board.h"
 #include "move.h"
 
@@ -16,6 +18,9 @@ struct Position {
     int en_passant_target;  // -1, если недоступно
     int halfmove_clock;     // для правила 50 ходов
     int fullmove_number;
+
+    std::array<Bitboard, 2> by_color;
+    std::array<Bitboard, 6> by_piece_type;
 
     // Отслеживаем позицию короля
     int white_king_square;

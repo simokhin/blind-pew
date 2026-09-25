@@ -70,14 +70,17 @@ Position parse_fen(const std::string& fen) {
     int halfmove_clock = std::stoi(halfmove_clock_str);
     int fullmove_number = std::stoi(fullmove_number_str);
 
+    Position position = {
+        .side_to_move = side_to_move,
+        .castling_rights = castling_rights,
+        .en_passant_target = en_passant_target,
+        .halfmove_clock = halfmove_clock,
+        .fullmove_number = fullmove_number,
+    };
+
     // Парсим расположение фигур
     std::istringstream ranks_stream(piece_placement);
     std::string rank_str;
-
-    Board board{};
-
-    int white_king_square;
-    int black_king_square;
 
     // Читаем строку до символа '/'
     int rank = 7;
@@ -90,42 +93,42 @@ Position parse_fen(const std::string& fen) {
             } else {
                 switch (c) {
                     case 'p':
-                        board[square_of(rank, file)] = Piece::BP;
+                        put_piece(position, Piece::BP, square_of(rank, file));
                         break;
                     case 'P':
-                        board[square_of(rank, file)] = Piece::WP;
+                        put_piece(position, Piece::WP, square_of(rank, file));
                         break;
                     case 'r':
-                        board[square_of(rank, file)] = Piece::BR;
+                        put_piece(position, Piece::BR, square_of(rank, file));
                         break;
                     case 'R':
-                        board[square_of(rank, file)] = Piece::WR;
+                        put_piece(position, Piece::WR, square_of(rank, file));
                         break;
                     case 'n':
-                        board[square_of(rank, file)] = Piece::BN;
+                        put_piece(position, Piece::BN, square_of(rank, file));
                         break;
                     case 'N':
-                        board[square_of(rank, file)] = Piece::WN;
+                        put_piece(position, Piece::WN, square_of(rank, file));
                         break;
                     case 'b':
-                        board[square_of(rank, file)] = Piece::BB;
+                        put_piece(position, Piece::BB, square_of(rank, file));
                         break;
                     case 'B':
-                        board[square_of(rank, file)] = Piece::WB;
+                        put_piece(position, Piece::WB, square_of(rank, file));
                         break;
                     case 'k':
-                        board[square_of(rank, file)] = Piece::BK;
-                        black_king_square = square_of(rank, file);
+                        put_piece(position, Piece::BK, square_of(rank, file));
+                        position.black_king_square = square_of(rank, file);
                         break;
                     case 'K':
-                        board[square_of(rank, file)] = Piece::WK;
-                        white_king_square = square_of(rank, file);
+                        put_piece(position, Piece::WK, square_of(rank, file));
+                        position.white_king_square = square_of(rank, file);
                         break;
                     case 'q':
-                        board[square_of(rank, file)] = Piece::BQ;
+                        put_piece(position, Piece::BQ, square_of(rank, file));
                         break;
                     case 'Q':
-                        board[square_of(rank, file)] = Piece::WQ;
+                        put_piece(position, Piece::WQ, square_of(rank, file));
                         break;
                     default:
                         break;
@@ -135,17 +138,6 @@ Position parse_fen(const std::string& fen) {
         }
         rank--;
     }
-
-    Position position = {
-        .board = board,
-        .side_to_move = side_to_move,
-        .castling_rights = castling_rights,
-        .en_passant_target = en_passant_target,
-        .halfmove_clock = halfmove_clock,
-        .fullmove_number = fullmove_number,
-        .white_king_square = white_king_square,
-        .black_king_square = black_king_square,
-    };
 
     position.zobrist_hash = compute_zobrist_hash(position);
 

@@ -194,8 +194,10 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
 
     position.side_to_move = (position.side_to_move == Color::White) ? Color::Black : Color::White;
 
-    position.board[move.from()] = position.board[move.to()];
-    position.board[move.to()] = undo.captured_piece;
+    move_piece(position, move.to(), move.from());
+    if (undo.captured_piece != Piece::None && move.flag() != MoveFlag::EnPassant) {
+        put_piece(position, undo.captured_piece, move.to());
+    }
 
     if (position.board[move.from()] == Piece::WK) {
         position.white_king_square = move.from();
@@ -204,32 +206,29 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
     }
 
     if (move.flag() == MoveFlag::EnPassant) {
-        position.board[move.to()] = Piece::None;
-        position.board[square_of(rank_of(move.from()), file_of(move.to()))] = undo.captured_piece;
+        put_piece(position, undo.captured_piece,
+                  square_of(rank_of(move.from()), file_of(move.to())));
     }
 
     if (move.flag() == MoveFlag::Promotion) {
-        position.board[move.from()] =
-            (position.side_to_move == Color::White) ? Piece::WP : Piece::BP;
+        remove_piece(position, move.from());
+        put_piece(position, (position.side_to_move == Color::White) ? Piece::WP : Piece::BP,
+                  move.from());
     }
 
     if (move.flag() == MoveFlag::Castling) {
         switch (move.to()) {
             case static_cast<int>(Square::G1):
-                position.board[static_cast<int>(Square::H1)] = Piece::WR;
-                position.board[static_cast<int>(Square::F1)] = Piece::None;
+                move_piece(position, static_cast<int>(Square::F1), static_cast<int>(Square::H1));
                 break;
             case static_cast<int>(Square::C1):
-                position.board[static_cast<int>(Square::A1)] = Piece::WR;
-                position.board[static_cast<int>(Square::D1)] = Piece::None;
+                move_piece(position, static_cast<int>(Square::D1), static_cast<int>(Square::A1));
                 break;
             case static_cast<int>(Square::G8):
-                position.board[static_cast<int>(Square::H8)] = Piece::BR;
-                position.board[static_cast<int>(Square::F8)] = Piece::None;
+                move_piece(position, static_cast<int>(Square::F8), static_cast<int>(Square::H8));
                 break;
             case static_cast<int>(Square::C8):
-                position.board[static_cast<int>(Square::A8)] = Piece::BR;
-                position.board[static_cast<int>(Square::D8)] = Piece::None;
+                move_piece(position, static_cast<int>(Square::D8), static_cast<int>(Square::A8));
                 break;
             default:
                 break;
@@ -243,6 +242,11 @@ int king_square_of(const Position& position, Color color) {
 
 void put_piece(Position& position, Piece piece, int square) {
     position.board[square] = piece;
+
+    // Устанавливаем биты
+    position.by_color[static_cast<int>(color_of(piece))] |= square_bb(square);
+    position.by_piece_type[static_cast<int>(piece_type_of(piece))] |= square_bb(square);
+
     position.zobrist_hash ^= piece_square_keys[static_cast<int>(piece)][square];
 }
 
@@ -250,6 +254,10 @@ void remove_piece(Position& position, int square) {
     Piece piece = position.board[square];
     position.zobrist_hash ^= piece_square_keys[static_cast<int>(piece)][square];
     position.board[square] = Piece::None;
+
+    // Снимаем биты
+    position.by_color[static_cast<int>(color_of(piece))] &= ~square_bb(square);
+    position.by_piece_type[static_cast<int>(piece_type_of(piece))] &= ~square_bb(square);
 }
 
 void move_piece(Position& position, int from, int to) {
@@ -259,6 +267,11 @@ void move_piece(Position& position, int from, int to) {
 
     position.board[to] = piece;
     position.board[from] = Piece::None;
+
+    // Снимаем и устанавливаем биты
+    position.by_color[static_cast<int>(color_of(piece))] ^= square_bb(from) | square_bb(to);
+    position.by_piece_type[static_cast<int>(piece_type_of(piece))] ^=
+        square_bb(from) | square_bb(to);
 }
 
 int make_null_move(Position& position) {
