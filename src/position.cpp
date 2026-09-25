@@ -2,52 +2,7 @@
 
 #include <stdlib.h>
 
-// Расстановка стартовой позиции
-Position make_start_position() {
-    // Инициализируем массив, который заполняется 0-ми, что соответствует Piece None
-    Board board{};
-
-    // Расставляем стартовую позицию для белых
-    board[0] = Piece::WR;
-    board[1] = Piece::WN;
-    board[2] = Piece::WB;
-    board[3] = Piece::WQ;
-    board[4] = Piece::WK;
-    board[5] = Piece::WB;
-    board[6] = Piece::WN;
-    board[7] = Piece::WR;
-
-    for (int i = 8; i <= 15; i++) {
-        board[i] = Piece::WP;
-    }
-
-    // Для черных
-    board[56] = Piece::BR;
-    board[57] = Piece::BN;
-    board[58] = Piece::BB;
-    board[59] = Piece::BQ;
-    board[60] = Piece::BK;
-    board[61] = Piece::BB;
-    board[62] = Piece::BN;
-    board[63] = Piece::BR;
-
-    for (int i = 48; i <= 55; i++) {
-        board[i] = Piece::BP;
-    }
-
-    Position position = {
-        .board = board,
-        .side_to_move = Color::White,
-        .castling_rights = WHITE_KINGSIDE | WHITE_QUEENSIDE | BLACK_KINGSIDE | BLACK_QUEENSIDE,
-        .en_passant_target = -1,
-        .halfmove_clock = 0,
-        .fullmove_number = 1,
-        .white_king_square = static_cast<int>(Square::E1),
-        .black_king_square = static_cast<int>(Square::E8),
-    };
-
-    return position;
-}
+#include "zobrist.h"
 
 UndoInfo make_move(Position& position, const Move& move) {
     // Проверяем, какая фигура была взята, учитывая случай взятия на проходе
@@ -65,6 +20,7 @@ UndoInfo make_move(Position& position, const Move& move) {
         .en_passant_target = position.en_passant_target,
         .halfmove_clock = position.halfmove_clock,
         .fullmove_number = position.fullmove_number,
+        .zobrist_hash = position.zobrist_hash,
     };
 
     Piece moving_piece = position.board[move.from()];
@@ -76,13 +32,14 @@ UndoInfo make_move(Position& position, const Move& move) {
         position.black_king_square = move.to();
     }
 
-    // Переставляем фигуры
-    position.board[move.from()] = Piece::None;
-    position.board[move.to()] = moving_piece;
+    if (captured_piece != Piece::None && move.flag() != MoveFlag::EnPassant) {
+        remove_piece(position, move.to());
+    }
+    move_piece(position, move.from(), move.to());
 
     // Учитываем взятие на проходе
     if (move.flag() == MoveFlag::EnPassant) {
-        position.board[square_of(rank_of(move.from()), file_of(move.to()))] = Piece::None;
+        remove_piece(position, square_of(rank_of(move.from()), file_of(move.to())));
     }
 
     // Учитываем превращение пешки
@@ -90,30 +47,38 @@ UndoInfo make_move(Position& position, const Move& move) {
         switch (move.promotion()) {
             case PromotionPiece::Bishop:
                 if (position.side_to_move == Color::White) {
-                    position.board[move.to()] = Piece::WB;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::WB, move.to());
                 } else if (position.side_to_move == Color::Black) {
-                    position.board[move.to()] = Piece::BB;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::BB, move.to());
                 }
                 break;
             case PromotionPiece::Knight:
                 if (position.side_to_move == Color::White) {
-                    position.board[move.to()] = Piece::WN;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::WN, move.to());
                 } else if (position.side_to_move == Color::Black) {
-                    position.board[move.to()] = Piece::BN;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::BN, move.to());
                 }
                 break;
             case PromotionPiece::Queen:
                 if (position.side_to_move == Color::White) {
-                    position.board[move.to()] = Piece::WQ;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::WQ, move.to());
                 } else if (position.side_to_move == Color::Black) {
-                    position.board[move.to()] = Piece::BQ;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::BQ, move.to());
                 }
                 break;
             case PromotionPiece::Rook:
                 if (position.side_to_move == Color::White) {
-                    position.board[move.to()] = Piece::WR;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::WR, move.to());
                 } else if (position.side_to_move == Color::Black) {
-                    position.board[move.to()] = Piece::BR;
+                    remove_piece(position, move.to());
+                    put_piece(position, Piece::BR, move.to());
                 }
                 break;
             default:
@@ -125,23 +90,19 @@ UndoInfo make_move(Position& position, const Move& move) {
     if (move.flag() == MoveFlag::Castling) {
         switch (move.to()) {
             case static_cast<int>(Square::G1):
-                position.board[static_cast<int>(Square::H1)] = Piece::None;
-                position.board[static_cast<int>(Square::F1)] = Piece::WR;
+                move_piece(position, static_cast<int>(Square::H1), static_cast<int>(Square::F1));
                 position.castling_rights &= ~(WHITE_KINGSIDE | WHITE_QUEENSIDE);
                 break;
             case static_cast<int>(Square::C1):
-                position.board[static_cast<int>(Square::A1)] = Piece::None;
-                position.board[static_cast<int>(Square::D1)] = Piece::WR;
+                move_piece(position, static_cast<int>(Square::A1), static_cast<int>(Square::D1));
                 position.castling_rights &= ~(WHITE_KINGSIDE | WHITE_QUEENSIDE);
                 break;
             case static_cast<int>(Square::G8):
-                position.board[static_cast<int>(Square::H8)] = Piece::None;
-                position.board[static_cast<int>(Square::F8)] = Piece::BR;
+                move_piece(position, static_cast<int>(Square::H8), static_cast<int>(Square::F8));
                 position.castling_rights &= ~(BLACK_KINGSIDE | BLACK_QUEENSIDE);
                 break;
             case static_cast<int>(Square::C8):
-                position.board[static_cast<int>(Square::A8)] = Piece::None;
-                position.board[static_cast<int>(Square::D8)] = Piece::BR;
+                move_piece(position, static_cast<int>(Square::A8), static_cast<int>(Square::D8));
                 position.castling_rights &= ~(BLACK_KINGSIDE | BLACK_QUEENSIDE);
                 break;
             default:
@@ -208,6 +169,19 @@ UndoInfo make_move(Position& position, const Move& move) {
     // Переключение стороны, которая ходит
     position.side_to_move = (position.side_to_move == Color::White) ? Color::Black : Color::White;
 
+    // Обновляем хэш
+    position.zobrist_hash ^= side_to_move_key;
+
+    position.zobrist_hash ^=
+        castling_keys[undo_info.castling_rights] ^ castling_keys[position.castling_rights];
+
+    if (undo_info.en_passant_target != -1) {
+        position.zobrist_hash ^= en_passant_file_keys[file_of(undo_info.en_passant_target)];
+    }
+    if (position.en_passant_target != -1) {
+        position.zobrist_hash ^= en_passant_file_keys[file_of(position.en_passant_target)];
+    }
+
     return undo_info;
 }
 
@@ -216,6 +190,7 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
     position.en_passant_target = undo.en_passant_target;
     position.halfmove_clock = undo.halfmove_clock;
     position.fullmove_number = undo.fullmove_number;
+    position.zobrist_hash = undo.zobrist_hash;
 
     position.side_to_move = (position.side_to_move == Color::White) ? Color::Black : Color::White;
 
@@ -264,4 +239,24 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
 
 int king_square_of(const Position& position, Color color) {
     return color == Color::White ? position.white_king_square : position.black_king_square;
+}
+
+void put_piece(Position& position, Piece piece, int square) {
+    position.board[square] = piece;
+    position.zobrist_hash ^= piece_square_keys[static_cast<int>(piece)][square];
+}
+
+void remove_piece(Position& position, int square) {
+    Piece piece = position.board[square];
+    position.zobrist_hash ^= piece_square_keys[static_cast<int>(piece)][square];
+    position.board[square] = Piece::None;
+}
+
+void move_piece(Position& position, int from, int to) {
+    Piece piece = position.board[from];
+    position.zobrist_hash ^= piece_square_keys[static_cast<int>(piece)][from] ^
+                             piece_square_keys[static_cast<int>(piece)][to];
+
+    position.board[to] = piece;
+    position.board[from] = Piece::None;
 }

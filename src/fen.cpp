@@ -3,6 +3,8 @@
 #include <cctype>
 #include <sstream>
 
+#include "zobrist.h"
+
 Position parse_fen(const std::string& fen) {
     // Берем строку и превращаем её в поток ввода
     std::istringstream stream(fen);
@@ -144,6 +146,8 @@ Position parse_fen(const std::string& fen) {
         .white_king_square = white_king_square,
         .black_king_square = black_king_square,
     };
+
+    position.zobrist_hash = compute_zobrist_hash(position);
 
     return position;
 }

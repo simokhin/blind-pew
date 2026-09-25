@@ -20,9 +20,9 @@ struct Position {
     // Отслеживаем позицию короля
     int white_king_square;
     int black_king_square;
-};
 
-Position make_start_position();
+    uint64_t zobrist_hash;
+};
 
 struct UndoInfo {
     Piece captured_piece;
@@ -30,8 +30,13 @@ struct UndoInfo {
     int en_passant_target;
     int halfmove_clock;
     int fullmove_number;
+    uint64_t zobrist_hash;
 };
 
 UndoInfo make_move(Position& position, const Move& move);
 void unmake_move(Position& position, const Move& move, const UndoInfo& undo);
 int king_square_of(const Position& position, Color color);
+
+void put_piece(Position& position, Piece piece, int square);
+void remove_piece(Position& position, int square);
+void move_piece(Position& position, int from, int to);
