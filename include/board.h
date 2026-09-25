@@ -2,12 +2,44 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 enum class Piece { None, WP, WN, WB, WR, WQ, WK, BP, BN, BB, BR, BQ, BK };
 
 enum class PieceType { Pawn, Knight, Bishop, Rook, Queen, King, None };
 
 PieceType piece_type_of(Piece piece);
+
+// Offsets
+
+struct Offset {
+    int dr;
+    int df;
+};
+
+inline std::vector<Offset> knight_offsets = {
+    Offset{1, 2}, Offset{1, -2}, Offset{-1, 2}, Offset{-1, -2},
+    Offset{2, 1}, Offset{2, -1}, Offset{-2, 1}, Offset{-2, -1},
+};
+
+inline std::vector<Offset> king_offsets = {
+    Offset{1, 0},  Offset{1, 1},   Offset{1, -1}, Offset{-1, 0},
+    Offset{-1, 1}, Offset{-1, -1}, Offset{0, 1},  Offset{0, -1},
+};
+
+inline std::vector<Offset> rook_directions = {
+    Offset{1, 0},
+    Offset{-1, 0},
+    Offset{0, 1},
+    Offset{0, -1},
+};
+
+inline std::vector<Offset> bishop_directions = {
+    Offset{1, 1},
+    Offset{1, -1},
+    Offset{-1, 1},
+    Offset{-1, -1},
+};
 
 enum class Square {
     A1,

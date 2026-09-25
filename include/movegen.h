@@ -6,11 +6,6 @@
 #include "move.h"
 #include "position.h"
 
-struct Offset {
-    int dr;
-    int df;
-};
-
 constexpr int MAX_MOVES = 256;
 
 class MoveList {

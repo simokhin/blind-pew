@@ -1,30 +1,7 @@
 #include "movegen.h"
 
+#include "board.h"
 #include "move.h"
-
-std::vector<Offset> knight_offsets = {
-    Offset{1, 2}, Offset{1, -2}, Offset{-1, 2}, Offset{-1, -2},
-    Offset{2, 1}, Offset{2, -1}, Offset{-2, 1}, Offset{-2, -1},
-};
-
-std::vector<Offset> king_offsets = {
-    Offset{1, 0},  Offset{1, 1},   Offset{1, -1}, Offset{-1, 0},
-    Offset{-1, 1}, Offset{-1, -1}, Offset{0, 1},  Offset{0, -1},
-};
-
-std::vector<Offset> rook_directions = {
-    Offset{1, 0},
-    Offset{-1, 0},
-    Offset{0, 1},
-    Offset{0, -1},
-};
-
-std::vector<Offset> bishop_directions = {
-    Offset{1, 1},
-    Offset{1, -1},
-    Offset{-1, 1},
-    Offset{-1, -1},
-};
 
 std::array<PromotionPiece, 4> promotion_pieces = {
     PromotionPiece::Knight,
