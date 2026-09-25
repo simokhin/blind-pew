@@ -61,3 +61,123 @@ void init_pawn_attacks() {
         }
     }
 }
+
+Bitboard rook_mask(int square) {
+    Bitboard mask = 0;
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    for (const Offset& d : rook_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                int next_rank = new_rank + d.dr;
+                int next_file = new_file + d.df;
+
+                if (!is_valid_square(next_rank, next_file)) {
+                    break;
+                }
+
+                mask |= square_bb(square_of(new_rank, new_file));
+                new_rank += d.dr;
+                new_file += d.df;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return mask;
+}
+
+Bitboard bishop_mask(int square) {
+    Bitboard mask = 0;
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    for (const Offset& d : bishop_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                int next_rank = new_rank + d.dr;
+                int next_file = new_file + d.df;
+
+                if (!is_valid_square(next_rank, next_file)) {
+                    break;
+                }
+
+                mask |= square_bb(square_of(new_rank, new_file));
+                new_rank += d.dr;
+                new_file += d.df;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return mask;
+}
+
+Bitboard rook_attacks_otf(int square, Bitboard occupancy) {
+    Bitboard attacks = 0;
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    for (const Offset& d : rook_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                if (occupancy & square_bb(square_of(new_rank, new_file))) {
+                    attacks |= square_bb(square_of(new_rank, new_file));
+                    break;
+                }
+
+                attacks |= square_bb(square_of(new_rank, new_file));
+                new_rank += d.dr;
+                new_file += d.df;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return attacks;
+}
+
+Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
+    Bitboard attacks = 0;
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    for (const Offset& d : bishop_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                if (occupancy & square_bb(square_of(new_rank, new_file))) {
+                    attacks |= square_bb(square_of(new_rank, new_file));
+                    break;
+                }
+
+                attacks |= square_bb(square_of(new_rank, new_file));
+                new_rank += d.dr;
+                new_file += d.df;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return attacks;
+}
