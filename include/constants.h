@@ -6,3 +6,4 @@ constexpr const char* START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w
 constexpr const char* ENGINE_NAME = "Chess Engine in C++";
 constexpr const char* ENGINE_AUTHOR = "Nikita Simokhin";
 constexpr int MATE_THRESHOLD = MATE - 1000;
+constexpr int MAX_PLY = 64;

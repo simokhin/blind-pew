@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <string>
 
 enum class MoveFlag {
     Normal,
@@ -29,3 +30,5 @@ class Move {
    private:
     uint16_t data;
 };
+
+std::string move_to_uci(const Move& m);

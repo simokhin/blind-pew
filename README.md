@@ -51,6 +51,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - position (startpos, fen, moves)
   - go (depth, movetime, wtime/btime/winc/binc)
   - setoption (Hash)
+  - principal variation reporting per depth
 - Simple benchmark
 
 ## Next

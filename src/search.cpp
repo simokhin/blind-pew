@@ -1,6 +1,7 @@
 #include "search.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "board.h"
 #include "constants.h"
@@ -34,6 +35,8 @@ bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
 }
 
 int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply) {
+    state.pv_length[ply] = 0;
+
     // Проверяем, остановлен ли поиск
     if (state.stopped) {
         return 0;
@@ -139,6 +142,13 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         // Обновляем альфу
         if (score > alpha) {
             alpha = score;
+
+            // Обнволяем principal variation table
+            state.pv_table[ply][0] = m;
+            for (int i = 0; i < state.pv_length[ply + 1]; i++) {
+                state.pv_table[ply][i + 1] = state.pv_table[ply + 1][i];
+            }
+            state.pv_length[ply] = state.pv_length[ply + 1] + 1;
         }
 
         // Отсекаем остальные варианты, если альфа больше беты
@@ -176,6 +186,8 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
 }
 
 Move find_best_move(Position& position, int max_depth, SearchState& state) {
+    auto search_start = std::chrono::steady_clock::now();
+
     MoveList moves = generate_legal_moves(position);
 
     Move best_move = moves[0];
@@ -206,6 +218,13 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
             if (score > best_score) {
                 best_score = score;
                 current_best_move = m;
+
+                // Обновляем principal variation table
+                state.pv_table[0][0] = m;
+                for (int i = 0; i < state.pv_length[1]; i++) {
+                    state.pv_table[0][i + 1] = state.pv_table[1][i];
+                }
+                state.pv_length[0] = state.pv_length[1] + 1;
             }
         }
 
@@ -218,7 +237,19 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
                 std::swap(*it, *moves.begin());
             }
 
+            // Печатаем информацию о поиске, используя principal variation table
             state.depth_reached = depth;
+            auto search_end = std::chrono::steady_clock::now();
+            double elapsed_seconds =
+                std::chrono::duration<double>(search_end - search_start).count();
+            long nps = (elapsed_seconds > 0) ? static_cast<long>(state.nodes / elapsed_seconds) : 0;
+
+            std::cout << "info depth " << depth << " nodes " << state.nodes << " nps " << nps
+                      << " pv ";
+            for (int i = 0; i < state.pv_length[0]; i++) {
+                std::cout << move_to_uci(state.pv_table[0][i]) << " ";
+            }
+            std::cout << "\n";
         }
     }
 
@@ -226,6 +257,8 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 }
 
 int quiescence(Position& position, int alpha, int beta, SearchState& state, int ply) {
+    state.pv_length[ply] = 0;
+
     // Проверяем, остановлен ли поиск
     if (state.stopped) {
         return 0;

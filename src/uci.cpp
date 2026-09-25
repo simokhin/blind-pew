@@ -153,42 +153,10 @@ void uci_loop() {
                 }
             }
 
-            auto search_start = std::chrono::steady_clock::now();
-
             state.history = position_history;
 
             Move best_move = find_best_move(position, max_depth, state);
-
-            auto search_end = std::chrono::steady_clock::now();
-            double elapsed_seconds =
-                std::chrono::duration<double>(search_end - search_start).count();
-            long nps = (elapsed_seconds > 0) ? static_cast<long>(state.nodes / elapsed_seconds) : 0;
-
-            std::cout << "info depth " << state.depth_reached << " nodes " << state.nodes << " nps "
-                      << nps << "\n";
-            std::cout << "bestmove " << algebraic_from_square(best_move.from())
-                      << algebraic_from_square(best_move.to());
-
-            if (best_move.flag() == MoveFlag::Promotion) {
-                switch (best_move.promotion()) {
-                    case PromotionPiece::Queen:
-                        std::cout << "q" << "\n";
-                        break;
-                    case PromotionPiece::Rook:
-                        std::cout << "r" << "\n";
-                        break;
-                    case PromotionPiece::Knight:
-                        std::cout << "n" << "\n";
-                        break;
-                    case PromotionPiece::Bishop:
-                        std::cout << "b" << "\n";
-                        break;
-                    default:
-                        break;
-                }
-            } else {
-                std::cout << "\n";
-            }
+            std::cout << "bestmove " + move_to_uci(best_move) + "\n";
         }
 
         if (command == "bench") {
