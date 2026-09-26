@@ -62,6 +62,9 @@ bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
 
 int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
             bool allow_null) {
+    if (ply >= MAX_PLY) {
+        return evaluate(position);
+    }
     state.pv_length[ply] = 0;
 
     // Проверяем, является ли данная нода principal variation
@@ -340,6 +343,10 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 }
 
 int quiescence(Position& position, int alpha, int beta, SearchState& state, int ply) {
+    if (ply >= MAX_PLY) {
+        return evaluate(position);
+    }
+
     state.pv_length[ply] = 0;
 
     // Проверяем, остановлен ли поиск
@@ -536,11 +543,11 @@ int see(const Position& position, int square, PieceType target_type, PieceType a
     Bitboard attackers = attackers_to(position, square, occupancy);
 
     // Ценность фигуры, которая стояла на клетке изначально
-    gain[0] = values[static_cast<int>(target_type) + 1];
+    gain[0] = see_values[static_cast<int>(target_type)];
     do {
         d++;  // Переходим на следующий шаг
 
-        gain[d] = values[static_cast<int>(attacker_type) + 1] - gain[d - 1];
+        gain[d] = see_values[static_cast<int>(attacker_type)] - gain[d - 1];
 
         // Убираем текущую фигуру, которая делала взятие
         attackers ^= from_set;

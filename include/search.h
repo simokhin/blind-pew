@@ -40,6 +40,8 @@ class ScoredMoveList {
     int count = 0;
 };
 
+const std::array<int, 6> see_values = {100, 320, 330, 500, 900, INFINITE};
+
 extern int lmr_table[64][64];
 void init_lmr_table();
 
