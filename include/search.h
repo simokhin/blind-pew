@@ -19,6 +19,27 @@ struct SearchState {
     std::array<std::array<std::array<int, 64>, 64>, 2> history_heuristic = {};
 };
 
+struct ScoredMove {
+    Move move;
+    int score;
+};
+
+class ScoredMoveList {
+   public:
+    void add(const Move& move, int score);
+    int size() const;
+    const ScoredMove& operator[](int index) const;
+    ScoredMove& operator[](int index);
+    const ScoredMove* begin() const;
+    const ScoredMove* end() const;
+    ScoredMove* begin();
+    ScoredMove* end();
+
+   private:
+    std::array<ScoredMove, MAX_MOVES> scored_moves;
+    int count = 0;
+};
+
 extern int lmr_table[64][64];
 void init_lmr_table();
 
@@ -37,8 +58,8 @@ void print_search_info(int depth, const SearchState& state, int best_score, doub
 
 bool has_non_pawn_material(const Position& position, Color color);
 
-void sort_moves(MoveList& moves, const Position& position, const SearchState& state, int ply,
-                bool have_tt_move, const Move& tt_move);
+ScoredMoveList sort_moves(const MoveList& moves, const Position& position, const SearchState& state,
+                          int ply, bool have_tt_move, const Move& tt_move);
 
 void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus);
 

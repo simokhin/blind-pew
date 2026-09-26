@@ -22,6 +22,19 @@ void init_lmr_table() {
     }
 }
 
+void ScoredMoveList::add(const Move& move, int score) {
+    scored_moves[count] = {move, score};
+    count++;
+}
+int ScoredMoveList::size() const { return count; }
+
+const ScoredMove& ScoredMoveList::operator[](int index) const { return scored_moves[index]; }
+ScoredMove& ScoredMoveList::operator[](int index) { return scored_moves[index]; }
+const ScoredMove* ScoredMoveList::begin() const { return scored_moves.data(); };
+const ScoredMove* ScoredMoveList::end() const { return scored_moves.data() + count; };
+ScoredMove* ScoredMoveList::begin() { return scored_moves.data(); };
+ScoredMove* ScoredMoveList::end() { return scored_moves.data() + count; }
+
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     // Определяем, чей ход был до хода
     Color mover = position.side_to_move;
@@ -123,13 +136,15 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     MoveList moves = generate_pseudo_legal_moves(position);
 
     // Сортируем ходы
-    sort_moves(moves, position, state, ply, have_tt_move, tt_move);
+    ScoredMoveList scored_moves = sort_moves(moves, position, state, ply, have_tt_move, tt_move);
 
     bool has_legal_move = false;
 
     int move_index = 0;  // Нужен для LMR
 
-    for (const Move& m : moves) {
+    for (const ScoredMove& sm : scored_moves) {
+        const Move& m = sm.move;
+
         UndoInfo undo;
 
         bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
@@ -455,10 +470,16 @@ bool has_non_pawn_material(const Position& position, Color color) {
     return false;
 }
 
-void sort_moves(MoveList& moves, const Position& position, const SearchState& state, int ply,
-                bool have_tt_move, const Move& tt_move) {
+ScoredMoveList sort_moves(const MoveList& moves, const Position& position, const SearchState& state,
+                          int ply, bool have_tt_move, const Move& tt_move) {
+    ScoredMoveList scored_moves;
+
     // Сортировка killer moves
     auto move_score = [&](const Move& m) {
+        // Если ход уже есть в таблице транспозиций, сортируем его первым
+        if (have_tt_move && m == tt_move) {
+            return 1000000;
+        }
         int score = mvv_lva_score(position, m);
         if (score > 0) {
             if (see_capture(position, m) < 0) {
@@ -479,18 +500,15 @@ void sort_moves(MoveList& moves, const Position& position, const SearchState& st
         return score;
     };
 
-    // Сортировка через MVV-LVA с поправкой на Transposposition table
-    std::sort(moves.begin(), moves.end(),
-              [&position, have_tt_move, tt_move, &move_score](const Move& a, const Move& b) {
-                  if (have_tt_move) {
-                      if (a == tt_move) {
-                          return true;
-                      } else if (b == tt_move) {
-                          return false;
-                      }
-                  }
-                  return move_score(a) > move_score(b);
-              });
+    for (const Move& m : moves) {
+        scored_moves.add(m, move_score(m));
+    }
+
+    // Сортировка через MVV-LVA
+    std::sort(scored_moves.begin(), scored_moves.end(),
+              [](const ScoredMove& a, const ScoredMove& b) { return a.score > b.score; });
+
+    return scored_moves;
 }
 
 void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus) {
