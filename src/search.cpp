@@ -459,6 +459,7 @@ void print_search_info(int depth, const SearchState& state, int best_score,
     }
 
     std::cout << "\n";
+    std::cout.flush();
 }
 
 bool has_non_pawn_material(const Position& position, Color color) {

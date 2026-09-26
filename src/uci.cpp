@@ -172,6 +172,7 @@ void uci_loop() {
             search_thread = std::thread([&position, &state, max_depth]() {
                 Move best_move = find_best_move(position, max_depth, state);
                 std::cout << "bestmove " + move_to_uci(best_move) + "\n";
+                std::cout.flush();
             });
         }
 
