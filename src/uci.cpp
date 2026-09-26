@@ -118,7 +118,8 @@ void uci_loop() {
         if (command == "go") {
             // Значения по умолчанию
             int max_depth = 64;
-            state.deadline = std::chrono::steady_clock::time_point::max();
+            state.hard_deadline = std::chrono::steady_clock::time_point::max();
+            state.soft_deadline = std::chrono::steady_clock::time_point::max();
 
             std::string token;
 
@@ -140,8 +141,9 @@ void uci_loop() {
                 } else if (token == "movetime") {
                     int ms;
                     stream >> ms;
-                    state.deadline =
+                    state.hard_deadline =
                         std::chrono::steady_clock::now() + std::chrono::milliseconds(ms);
+                    state.soft_deadline = state.hard_deadline;
                 } else if (token == "infinite") {
                     // Используются значения по умолчанию
                 } else if (token == "wtime") {
@@ -157,13 +159,17 @@ void uci_loop() {
 
             if (wtime > 0 || btime > 0) {
                 if (position.side_to_move == Color::White) {
-                    int time_for_move = wtime / 20;
-                    state.deadline = std::chrono::steady_clock::now() +
-                                     std::chrono::milliseconds(time_for_move + winc);
+                    int soft_time = wtime / 20 + winc / 2;
+                    int hard_time = wtime / 2;
+                    auto now = std::chrono::steady_clock::now();
+                    state.soft_deadline = now + std::chrono::milliseconds(soft_time);
+                    state.hard_deadline = now + std::chrono::milliseconds(hard_time);
                 } else if (position.side_to_move == Color::Black) {
-                    int time_for_move = btime / 20;
-                    state.deadline = std::chrono::steady_clock::now() +
-                                     std::chrono::milliseconds(time_for_move + binc);
+                    int soft_time = btime / 20 + binc / 2;
+                    int hard_time = btime / 2;
+                    auto now = std::chrono::steady_clock::now();
+                    state.soft_deadline = now + std::chrono::milliseconds(soft_time);
+                    state.hard_deadline = now + std::chrono::milliseconds(hard_time);
                 }
             }
 

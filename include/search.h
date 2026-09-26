@@ -10,7 +10,8 @@
 
 struct SearchState {
     long nodes = 0;
-    std::chrono::steady_clock::time_point deadline;
+    std::chrono::steady_clock::time_point hard_deadline;
+    std::chrono::steady_clock::time_point soft_deadline;
     std::atomic<bool> stopped = false;
     int depth_reached = 0;
     std::vector<uint64_t> history;

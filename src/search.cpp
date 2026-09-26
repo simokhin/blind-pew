@@ -76,7 +76,7 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     }
 
     // Смотрим каждые 2048 узлов, истекло ли время
-    if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.deadline) {
+    if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.hard_deadline) {
         state.stopped = true;
         return 0;
     }
@@ -281,11 +281,23 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
     auto search_start = std::chrono::steady_clock::now();
 
     MoveList moves = generate_legal_moves(position);
+    if (moves.size() == 1) {
+        return moves[0];
+    }
 
     Move best_move = moves[0];
 
     // Iterative deepening
     for (int depth = 1; depth <= max_depth && !state.stopped; depth++) {
+        // Не начинаем новую итерацию, если на нее нет времени
+        if (depth > 1) {
+            auto elapsed = std::chrono::steady_clock::now() - search_start;
+            auto soft_budget = state.soft_deadline - search_start;
+            if (elapsed > soft_budget / 2) {
+                break;
+            }
+        }
+
         int best_score = -INFINITE;
 
         Move current_best_move;
@@ -355,7 +367,7 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     }
 
     // Смотрим каждые 2048 узлов, истекло ли время
-    if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.deadline) {
+    if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.hard_deadline) {
         state.stopped = true;
         return 0;
     }

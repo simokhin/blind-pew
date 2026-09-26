@@ -23,7 +23,8 @@ void run_bench(int depth) {
     for (const std::string& fen : positions) {
         Position position = parse_fen(fen);
         SearchState state;
-        state.deadline = std::chrono::steady_clock::time_point::max();
+        state.hard_deadline = std::chrono::steady_clock::time_point::max();
+        state.soft_deadline = std::chrono::steady_clock::time_point::max();
 
         auto start = std::chrono::steady_clock::now();
 
