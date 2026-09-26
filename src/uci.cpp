@@ -30,10 +30,6 @@ void uci_loop() {
         stream >> command;
 
         if (command == "quit") {
-            state.stopped = true;
-            if (search_thread.joinable()) {
-                search_thread.join();
-            }
             break;
         }
 
@@ -226,5 +222,10 @@ void uci_loop() {
             state.history_heuristic = {};
             clear_transposition_table();
         }
+    }
+
+    state.stopped = true;
+    if (search_thread.joinable()) {
+        search_thread.join();
     }
 }
