@@ -1,4 +1,4 @@
-# Chess Engine (C++)
+# BlindPew
 
 A chess engine written in C++, built as a learning project for the language and for chess engine programming.
 
@@ -60,5 +60,6 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 ## Next
 
-- Better evaluation
-- Better move ordering
+- Improve evaluation
+- Improve search
+- Improve time managment

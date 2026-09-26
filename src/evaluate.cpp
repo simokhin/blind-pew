@@ -1,5 +1,9 @@
 #include "evaluate.h"
 
+#include <algorithm>
+
+#include "magic_constants.h"
+
 // PST
 std::array<int, 64> pawn_pst = {
     0,  0,  0,  0,  0,  0,  0,  0,  5,  10, 10, -20, -20, 10, 10, 5,  5, -5, -10, 0,  0,  -10,
@@ -52,6 +56,23 @@ std::array<int, 64> king_pst_eg = {
 
 std::array<int, 13> phase_weights = {0, 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0};
 
+// Mobility bonus (S(mg, eg)) по числу доступных "безопасных" клеток.
+
+std::array<int, 9> knight_mobility_mg = {-30, -20, -10, 0, 10, 18, 24, 28, 30};
+std::array<int, 9> knight_mobility_eg = {-30, -20, -10, 0, 10, 18, 24, 28, 30};
+
+std::array<int, 14> bishop_mobility_mg = {-20, -10, 5, 20, 35, 48, 58, 65, 70, 73, 75, 76, 77, 77};
+std::array<int, 14> bishop_mobility_eg = {-25, -15, 0, 15, 30, 42, 52, 58, 62, 65, 67, 68, 68, 69};
+
+std::array<int, 15> rook_mobility_mg = {-20, -12, -5, 0, 5, 10, 14, 18, 21, 23, 25, 26, 27, 28, 28};
+std::array<int, 15> rook_mobility_eg = {-35, -18, -5,  12,  28,  44,  58, 72,
+                                        85,  95,  103, 108, 112, 115, 117};
+
+std::array<int, 20> queen_mobility_mg = {-10, -8, -6, -4, -2, 0,  2,  4,  6,  8,
+                                         10,  12, 14, 15, 16, 17, 18, 19, 20, 20};
+std::array<int, 20> queen_mobility_eg = {-18, -14, -10, -6, -2, 2,  6,  10, 14, 18,
+                                         21,  24,  27,  29, 31, 32, 33, 34, 35, 35};
+
 int evaluate(const Position& position) {
     int evaluation = 0;
     int phase = compute_phase(position);
@@ -69,6 +90,9 @@ int evaluate(const Position& position) {
 
             // Бонус за расположение фигур
             value += pst_bonus(piece, square, phase);
+
+            // Бонус за мобильность фигур
+            value += mobility_bonus(piece, square, position, phase);
 
             if (color_of(piece) == position.side_to_move) {
                 evaluation += value;
@@ -143,4 +167,74 @@ int compute_phase(const Position& position) {
     phase = (phase * 256 + TOTAL_PHASE / 2) / TOTAL_PHASE;
 
     return phase;
+}
+
+int mobility_count(Bitboard attacks, const Position& position, Color color) {
+    Bitboard enemy_pawns = position.by_color[static_cast<int>(opposite_color(color))] &
+                           position.by_piece_type[static_cast<int>(PieceType::Pawn)];
+
+    Bitboard enemy_pawn_attacks = pawn_attacks_bulk(enemy_pawns, opposite_color(color));
+
+    // Куда фигура могла бы пойти, исключая свои фигуры и клетки, атакованные пешками врага
+    Bitboard moves = attacks & ~position.by_color[static_cast<int>(color)] & ~enemy_pawn_attacks;
+
+    return popcount(moves);
+}
+
+int mobility_bonus(Piece piece, int square, const Position& position, int phase) {
+    PieceType type = piece_type_of(piece);
+    Color color = color_of(piece);
+
+    switch (type) {
+        case PieceType::Knight: {
+            int mobility = knight_mobility(position, square, color);
+            int idx = std::min(mobility, static_cast<int>(knight_mobility_mg.size()) - 1);
+            return (knight_mobility_mg[idx] * (256 - phase) + knight_mobility_eg[idx] * phase) /
+                   256;
+        }
+        case PieceType::Bishop: {
+            int mobility = bishop_mobility(position, square, color);
+            int idx = std::min(mobility, static_cast<int>(bishop_mobility_mg.size()) - 1);
+            return (bishop_mobility_mg[idx] * (256 - phase) + bishop_mobility_eg[idx] * phase) /
+                   256;
+        }
+        case PieceType::Rook: {
+            int mobility = rook_mobility(position, square, color);
+            int idx = std::min(mobility, static_cast<int>(rook_mobility_mg.size()) - 1);
+            return (rook_mobility_mg[idx] * (256 - phase) + rook_mobility_eg[idx] * phase) / 256;
+        }
+        case PieceType::Queen: {
+            int mobility = queen_mobility(position, square, color);
+            int idx = std::min(mobility, static_cast<int>(queen_mobility_mg.size()) - 1);
+            return (queen_mobility_mg[idx] * (256 - phase) + queen_mobility_eg[idx] * phase) / 256;
+        }
+        default:
+            return 0;
+    }
+}
+
+int knight_mobility(const Position& position, int square, Color color) {
+    return mobility_count(knight_attacks[square], position, color);
+}
+
+int bishop_mobility(const Position& position, int square, Color color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+    Bitboard attacks = bishop_attacks_from(square, occupancy);
+
+    return mobility_count(attacks, position, color);
+}
+
+int rook_mobility(const Position& position, int square, Color color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+    Bitboard attacks = rook_attacks_from(square, occupancy);
+
+    return mobility_count(attacks, position, color);
+}
+
+int queen_mobility(const Position& position, int square, Color color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+
+    Bitboard attacks = rook_attacks_from(square, occupancy) | bishop_attacks_from(square, occupancy);
+
+    return mobility_count(attacks, position, color);
 }

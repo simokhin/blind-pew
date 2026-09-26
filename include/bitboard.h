@@ -8,6 +8,9 @@ struct Position;
 
 using Bitboard = uint64_t;
 
+constexpr Bitboard FILE_A = 0x0101010101010101ULL;
+constexpr Bitboard FILE_H = 0x8080808080808080ULL;
+
 Bitboard square_bb(int square);
 
 extern Bitboard knight_attacks[64];
@@ -41,7 +44,13 @@ bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
 
 int pop_lsb(Bitboard& bb);
 Bitboard lsb_bb(Bitboard bb);
+int popcount(Bitboard bb);
 
 Bitboard attackers_to(const Position& position, int square, Bitboard occupancy);
 Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, Color side,
                                  PieceType& out_type);
+
+Bitboard pawn_attacks_bulk(Bitboard pawns, Color color);
+
+Bitboard rook_attacks_from(int square, Bitboard occupancy);
+Bitboard bishop_attacks_from(int square, Bitboard occupancy);

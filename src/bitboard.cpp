@@ -303,6 +303,8 @@ int pop_lsb(Bitboard& bb) {
 // Возвращает битборд с одним установленным битом (самый младший бит bb)
 Bitboard lsb_bb(Bitboard bb) { return bb & (-bb); }
 
+int popcount(Bitboard bb) { return __builtin_popcountll(bb); }
+
 // Возвращает битборд всех фигур, атакующих клетку
 Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) {
     Bitboard attackers = 0;
@@ -321,20 +323,14 @@ Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) 
                  position.by_color[static_cast<int>(Color::White)] &
                  position.by_piece_type[static_cast<int>(PieceType::Pawn)] & occupancy;
 
-    Bitboard relevant_rook = occupancy & rook_masks[square];
-    int rook_bits = rook_relevant_bits[square];
-    int rook_magic_index = (relevant_rook * rook_magics[square]) >> (64 - rook_bits);
-    Bitboard rook_attacks_here = rook_attacks_table[square][rook_magic_index];
+    Bitboard rook_attacks_here = rook_attacks_from(square, occupancy);
 
     attackers |= rook_attacks_here &
                  (position.by_piece_type[static_cast<int>(PieceType::Rook)] |
                   position.by_piece_type[static_cast<int>(PieceType::Queen)]) &
                  occupancy;
 
-    Bitboard relevant_bishop = occupancy & bishop_masks[square];
-    int bishop_bits = bishop_relevant_bits[square];
-    int bishop_magic_index = (relevant_bishop * bishop_magics[square]) >> (64 - bishop_bits);
-    Bitboard bishop_attacks_here = bishop_attacks_table[square][bishop_magic_index];
+    Bitboard bishop_attacks_here = bishop_attacks_from(square, occupancy);
 
     attackers |= bishop_attacks_here &
                  (position.by_piece_type[static_cast<int>(PieceType::Bishop)] |
@@ -357,4 +353,27 @@ Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, C
     }
 
     return 0;
+}
+
+// Берем все клетки, атакованные пешками
+Bitboard pawn_attacks_bulk(Bitboard pawns, Color color) {
+    if (color == Color::White) {
+        return ((pawns & ~FILE_A) << 7) | ((pawns & ~FILE_H) << 9);
+    } else {
+        return ((pawns & ~FILE_H) >> 7) | ((pawns & ~FILE_A) >> 9);
+    }
+}
+
+Bitboard rook_attacks_from(int square, Bitboard occupancy) {
+    Bitboard relevant = occupancy & rook_masks[square];
+    int bits = rook_relevant_bits[square];
+    int magic_index = (relevant * rook_magics[square]) >> (64 - bits);
+    return rook_attacks_table[square][magic_index];
+}
+
+Bitboard bishop_attacks_from(int square, Bitboard occupancy) {
+    Bitboard relevant = occupancy & bishop_masks[square];
+    int bits = bishop_relevant_bits[square];
+    int magic_index = (relevant * bishop_magics[square]) >> (64 - bits);
+    return bishop_attacks_table[square][magic_index];
 }
