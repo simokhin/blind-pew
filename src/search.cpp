@@ -333,6 +333,10 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     });
 
     for (const Move& m : moves) {
+        if (see_capture(position, m) < 0) {
+            continue;
+        }
+
         UndoInfo undo;
 
         if (!make_legal_move(position, m, undo)) {
@@ -430,7 +434,11 @@ void sort_moves(MoveList& moves, const Position& position, const SearchState& st
     // Сортировка killer moves
     auto move_score = [&](const Move& m) {
         int score = mvv_lva_score(position, m);
-        if (score <= 0) {
+        if (score > 0) {
+            if (see_capture(position, m) < 0) {
+                score -= 10000;  // помечаем взятие, как не выгодное
+            }
+        } else {
             if (m == state.killers[ply][0]) {
                 score = 51;
             } else if (m == state.killers[ply][1]) {
@@ -467,4 +475,66 @@ void update_history_heuristic(SearchState& state, Color side, int from, int to, 
 
     // Прибавляем к ней бонус
     value += clamped_bonus - value * std::abs(clamped_bonus) / MAX_HISTORY;
+}
+
+int see(const Position& position, int square, PieceType target_type, PieceType attacker_type,
+        Color side, Bitboard occupancy, Bitboard from_set) {
+    int gain[32];
+    int d = 0;
+    Color current_side = side;
+
+    // Битборд фигур всех цветов, которые могут вскрыть что-то за собой при снятии
+    Bitboard may_xray = position.by_piece_type[static_cast<int>(PieceType::Pawn)] |
+                        position.by_piece_type[static_cast<int>(PieceType::Bishop)] |
+                        position.by_piece_type[static_cast<int>(PieceType::Rook)] |
+                        position.by_piece_type[static_cast<int>(PieceType::Queen)];
+
+    Bitboard attackers = attackers_to(position, square, occupancy);
+
+    // Ценность фигуры, которая стояла на клетке изначально
+    gain[0] = values[static_cast<int>(target_type) + 1];
+    do {
+        d++;  // Переходим на следующий шаг
+
+        gain[d] = values[static_cast<int>(attacker_type) + 1] - gain[d - 1];
+
+        // Убираем текущую фигуру, которая делала взятие
+        attackers ^= from_set;
+        occupancy ^= from_set;
+
+        // Если атакующая фигура могла что-то вскрыть за собой, пересчитываем атаки на клетку
+        if (from_set & may_xray) {
+            attackers |= attackers_to(position, square, occupancy) & occupancy;
+        }
+
+        current_side = opposite_color(current_side);
+
+        // Находим следующую наименее значительную атакующую фигуру для другой стороны
+        from_set = least_valuable_attacker(position, attackers, current_side, attacker_type);
+    } while (from_set != 0);
+
+    while (--d) {
+        gain[d - 1] = -std::max(-gain[d - 1], gain[d]);
+    }
+
+    return gain[0];
+}
+
+int see_capture(const Position& position, const Move& move) {
+    int square = move.to();
+    Color side = position.side_to_move;
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+    Bitboard from_set = square_bb(move.from());
+    PieceType attacker_type = piece_type_of(position.board[move.from()]);
+    PieceType target_type = piece_type_of(position.board[move.to()]);
+
+    if (move.flag() == MoveFlag::EnPassant) {
+        target_type = PieceType::Pawn;
+        int captured_square = square_of(rank_of(move.from()), file_of(move.to()));
+        occupancy &= ~square_bb(captured_square);
+    }
+
+    int value = see(position, square, target_type, attacker_type, side, occupancy, from_set);
+
+    return value;
 }

@@ -2,6 +2,10 @@
 #include <cstdint>
 #include <random>
 
+#include "board.h"
+
+struct Position;
+
 using Bitboard = uint64_t;
 
 Bitboard square_bb(int square);
@@ -36,3 +40,8 @@ bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
                     Bitboard (*attacks_fn)(int, Bitboard));
 
 int pop_lsb(Bitboard& bb);
+Bitboard lsb_bb(Bitboard bb);
+
+Bitboard attackers_to(const Position& position, int square, Bitboard occupancy);
+Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, Color side,
+                                 PieceType& out_type);

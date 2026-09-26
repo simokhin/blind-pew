@@ -49,6 +49,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - killer moves and history heuristic
   - principal variation search (PVS)
   - late move reduction (LMR)
+  - static exchange evaluation (SEE)
 - Basic UCI support
   - uci / isready / quit
   - position (startpos, fen, moves)

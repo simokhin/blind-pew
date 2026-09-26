@@ -1,7 +1,7 @@
 #include "bitboard.h"
 
-#include "board.h"
 #include "magic_constants.h"
+#include "position.h"
 
 // Строит битборд, в котором установлен один бит на позиции square
 Bitboard square_bb(int square) {
@@ -298,4 +298,63 @@ int pop_lsb(Bitboard& bb) {
     int bit_number = __builtin_ctzll(bb);
     bb &= bb - 1;
     return bit_number;
+}
+
+// Возвращает битборд с одним установленным битом (самый младший бит bb)
+Bitboard lsb_bb(Bitboard bb) { return bb & (-bb); }
+
+// Возвращает битборд всех фигур, атакующих клетку
+Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) {
+    Bitboard attackers = 0;
+
+    attackers |= knight_attacks[square] &
+                 position.by_piece_type[static_cast<int>(PieceType::Knight)] & occupancy;
+
+    attackers |= king_attacks[square] & position.by_piece_type[static_cast<int>(PieceType::King)] &
+                 occupancy;
+
+    attackers |= pawn_attacks[static_cast<int>(Color::White)][square] &
+                 position.by_color[static_cast<int>(Color::Black)] &
+                 position.by_piece_type[static_cast<int>(PieceType::Pawn)] & occupancy;
+
+    attackers |= pawn_attacks[static_cast<int>(Color::Black)][square] &
+                 position.by_color[static_cast<int>(Color::White)] &
+                 position.by_piece_type[static_cast<int>(PieceType::Pawn)] & occupancy;
+
+    Bitboard relevant_rook = occupancy & rook_masks[square];
+    int rook_bits = rook_relevant_bits[square];
+    int rook_magic_index = (relevant_rook * rook_magics[square]) >> (64 - rook_bits);
+    Bitboard rook_attacks_here = rook_attacks_table[square][rook_magic_index];
+
+    attackers |= rook_attacks_here &
+                 (position.by_piece_type[static_cast<int>(PieceType::Rook)] |
+                  position.by_piece_type[static_cast<int>(PieceType::Queen)]) &
+                 occupancy;
+
+    Bitboard relevant_bishop = occupancy & bishop_masks[square];
+    int bishop_bits = bishop_relevant_bits[square];
+    int bishop_magic_index = (relevant_bishop * bishop_magics[square]) >> (64 - bishop_bits);
+    Bitboard bishop_attacks_here = bishop_attacks_table[square][bishop_magic_index];
+
+    attackers |= bishop_attacks_here &
+                 (position.by_piece_type[static_cast<int>(PieceType::Bishop)] |
+                  position.by_piece_type[static_cast<int>(PieceType::Queen)]) &
+                 occupancy;
+
+    return attackers;
+}
+
+// Возвращает битборд с наименее ценным атакующим клетку
+Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, Color side,
+                                 PieceType& out_type) {
+    for (int type = 0; type <= static_cast<int>(PieceType::King); type++) {
+        Bitboard candidates =
+            attackers & position.by_color[static_cast<int>(side)] & position.by_piece_type[type];
+        if (candidates != 0) {
+            out_type = static_cast<PieceType>(type);
+            return lsb_bb(candidates);
+        }
+    }
+
+    return 0;
 }

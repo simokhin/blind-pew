@@ -38,3 +38,8 @@ void sort_moves(MoveList& moves, const Position& position, const SearchState& st
                 bool have_tt_move, const Move& tt_move);
 
 void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus);
+
+int see(const Position& position, int square, PieceType target_type, PieceType attacker_type,
+        Color side, Bitboard occupancy, Bitboard from_set);
+
+int see_capture(const Position& position, const Move& move);
