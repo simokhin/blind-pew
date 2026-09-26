@@ -74,6 +74,8 @@ std::array<int, 20> queen_mobility_eg = {-18, -14, -10, -6, -2, 2,  6,  10, 14, 
                                          21,  24,  27,  29, 31, 32, 33, 34, 35, 35};
 
 constexpr int bishop_pair_bonus = 50;
+constexpr int rook_open_file_bonus = 15;
+constexpr int rook_semi_open_file_bonus = 8;
 
 int evaluate(const Position& position) {
     int evaluation = 0;
@@ -248,10 +250,29 @@ int queen_mobility(const Position& position, int square, Color color) {
 int evaluate_side(const Position& position, Color color, int phase) {
     int bonus = 0;
 
+    // Бонус за пару слонов
     Bitboard bishops = position.by_color[static_cast<int>(color)] &
                        position.by_piece_type[static_cast<int>(PieceType::Bishop)];
     if (popcount(bishops) >= 2) {
         bonus += bishop_pair_bonus;
+    }
+
+    Bitboard all_pawns = position.by_piece_type[static_cast<int>(PieceType::Pawn)];
+    Bitboard own_pawns = all_pawns & position.by_color[static_cast<int>(color)];
+    Bitboard enemy_pawns = all_pawns & position.by_color[static_cast<int>(opposite_color(color))];
+
+    // Бонус за ладьи на открытых/полуоткрытых файлах
+    Bitboard rooks = position.by_color[static_cast<int>(color)] &
+                     position.by_piece_type[static_cast<int>(PieceType::Rook)];
+
+    while (rooks != 0) {
+        int square = pop_lsb(rooks);
+        Bitboard file_mask = FILE_A << file_of(square);
+
+        if ((own_pawns & file_mask) == 0) {
+            bonus +=
+                (enemy_pawns & file_mask) == 0 ? rook_open_file_bonus : rook_semi_open_file_bonus;
+        }
     }
 
     return bonus;
