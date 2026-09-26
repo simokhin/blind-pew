@@ -19,6 +19,9 @@ struct SearchState {
     std::array<std::array<std::array<int, 64>, 64>, 2> history_heuristic = {};
 };
 
+extern int lmr_table[64][64];
+void init_lmr_table();
+
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo);
 
 int negamax(Position& position, int depth, SearchState& state, int alpha = -INFINITE,

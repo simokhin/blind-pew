@@ -49,7 +49,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - null move pruning
   - killer moves and history heuristic
   - principal variation search (PVS)
-  - late move reduction (LMR)
+  - late move reduction (LMR, graduated by depth/move index)
   - static exchange evaluation (SEE)
 - Basic UCI support
   - uci / isready / quit

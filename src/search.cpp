@@ -1,6 +1,7 @@
 #include "search.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "board.h"
@@ -8,6 +9,18 @@
 #include "evaluate.h"
 #include "movegen.h"
 #include "tt.h"
+
+int lmr_table[64][64];
+
+void init_lmr_table() {
+    for (int depth = 1; depth < 64; depth++) {
+        for (int move_index = 1; move_index < 64; move_index++) {
+            // Формула: base + ln(depth)*ln(move_index)/scale.
+            lmr_table[depth][move_index] =
+                static_cast<int>(0.7844 + std::log(depth) * std::log(move_index) / 2.4696);
+        }
+    }
+}
 
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     // Определяем, чей ход был до хода
@@ -37,6 +50,9 @@ bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
 int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
             bool allow_null) {
     state.pv_length[ply] = 0;
+
+    // Проверяем, является ли данная нода principal variation
+    bool pv_node = (beta - alpha) > 1;
 
     // Проверяем, остановлен ли поиск
     if (state.stopped) {
@@ -129,7 +145,8 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
 
         // Проверяем, выполнены ли условия для LMR
         bool can_reduce = depth >= 3 && move_index > 3 && !is_capture && !gives_check &&
-                          !in_check && m != state.killers[ply][0] && m != state.killers[ply][1];
+                          !in_check && m != state.killers[ply][0] && m != state.killers[ply][1] &&
+                          m.flag() != MoveFlag::Promotion;
 
         bool is_first_move = !has_legal_move;
         has_legal_move = true;
@@ -146,7 +163,16 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
             score =
                 -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha, ply + 1);
         } else {
-            int reduction = can_reduce ? 1 : 0;
+            // Вычисляем reduction из таблицы, инициализированной при старте
+            int reduction = 0;
+            if (can_reduce) {
+                reduction = lmr_table[std::min(depth, 63)][std::min(move_index, 63)];
+                if (pv_node) {
+                    reduction--;
+                }
+                reduction = std::max(0, std::min(reduction, depth - 2));
+            }
+
             int search_depth = gives_check ? depth : std::max(depth - 1 - reduction, 0);
 
             score = -negamax(position, search_depth, state, -alpha - 1, -alpha, ply + 1);

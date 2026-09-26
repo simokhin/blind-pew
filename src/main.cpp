@@ -1,3 +1,4 @@
+#include "search.h"
 #include "tt.h"
 #include "uci.h"
 #include "zobrist.h"
@@ -10,6 +11,8 @@ int main() {
     init_pawn_attacks();
     init_rook_magics();
     init_bishop_magics();
+
+    init_lmr_table();
 
     resize_transposition_table(16);
 
