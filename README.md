@@ -53,6 +53,7 @@ Runs a SPRT-terminated cutechess-cli match between the current working tree and 
   - material
   - PST
   - mobility
+  - bishop pair bonus
 - Simple search
   - negamax with alpha-beta pruning
   - iterative deepening

@@ -73,6 +73,8 @@ std::array<int, 20> queen_mobility_mg = {-10, -8, -6, -4, -2, 0,  2,  4,  6,  8,
 std::array<int, 20> queen_mobility_eg = {-18, -14, -10, -6, -2, 2,  6,  10, 14, 18,
                                          21,  24,  27,  29, 31, 32, 33, 34, 35, 35};
 
+constexpr int bishop_pair_bonus = 50;
+
 int evaluate(const Position& position) {
     int evaluation = 0;
     int phase = compute_phase(position);
@@ -101,6 +103,9 @@ int evaluate(const Position& position) {
             }
         }
     }
+
+    evaluation += evaluate_side(position, position.side_to_move, phase);
+    evaluation -= evaluate_side(position, opposite_color(position.side_to_move), phase);
 
     return evaluation;
 }
@@ -234,7 +239,20 @@ int rook_mobility(const Position& position, int square, Color color) {
 int queen_mobility(const Position& position, int square, Color color) {
     Bitboard occupancy = position.by_color[0] | position.by_color[1];
 
-    Bitboard attacks = rook_attacks_from(square, occupancy) | bishop_attacks_from(square, occupancy);
+    Bitboard attacks =
+        rook_attacks_from(square, occupancy) | bishop_attacks_from(square, occupancy);
 
     return mobility_count(attacks, position, color);
+}
+
+int evaluate_side(const Position& position, Color color, int phase) {
+    int bonus = 0;
+
+    Bitboard bishops = position.by_color[static_cast<int>(color)] &
+                       position.by_piece_type[static_cast<int>(PieceType::Bishop)];
+    if (popcount(bishops) >= 2) {
+        bonus += bishop_pair_bonus;
+    }
+
+    return bonus;
 }

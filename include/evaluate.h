@@ -19,3 +19,5 @@ int rook_mobility(const Position& position, int square, Color color);
 int queen_mobility(const Position& position, int square, Color color);
 int mobility_count(Bitboard attacks, const Position& position, Color color);
 int mobility_bonus(Piece piece, int square, const Position& position, int phase);
+
+int evaluate_side(const Position& position, Color color, int phase);
