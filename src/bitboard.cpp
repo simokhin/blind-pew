@@ -13,6 +13,8 @@ Bitboard king_attacks[64];
 Bitboard pawn_attacks[2][64];
 Bitboard rook_attacks_table[64][4096];
 Bitboard bishop_attacks_table[64][512];
+Bitboard rook_masks[64];
+Bitboard bishop_masks[64];
 
 void init_knight_attacks() {
     for (int square = 0; square < 64; square++) {
@@ -228,6 +230,8 @@ Bitboard find_bishop_magic(int square, std::mt19937_64& rng) {
 void init_rook_magics() {
     for (int square = 0; square < 64; square++) {
         Bitboard mask = rook_mask(square);
+        rook_masks[square] = mask;
+
         int bits = rook_relevant_bits[square];
         int count =
             1 << bits;  // 2^bits - количество возможных комбинаций занятости для этой клетки
@@ -248,6 +252,8 @@ void init_rook_magics() {
 void init_bishop_magics() {
     for (int square = 0; square < 64; square++) {
         Bitboard mask = bishop_mask(square);
+        bishop_masks[square] = mask;
+
         int bits = bishop_relevant_bits[square];
         int count =
             1 << bits;  // 2^bits - количество возможных комбинаций занятости для этой клетки

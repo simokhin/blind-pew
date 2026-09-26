@@ -11,6 +11,8 @@ extern Bitboard king_attacks[64];
 extern Bitboard pawn_attacks[2][64];
 extern Bitboard rook_attacks_table[64][4096];
 extern Bitboard bishop_attacks_table[64][512];
+extern Bitboard rook_masks[64];
+extern Bitboard bishop_masks[64];
 
 Bitboard rook_mask(int square);
 Bitboard bishop_mask(int square);

@@ -569,7 +569,7 @@ MoveList generate_king_moves_bb(const Position& position, int square) {
 MoveList generate_rook_moves_bb(const Position& position, int square) {
     Bitboard occupancy = position.by_color[0] | position.by_color[1];
 
-    Bitboard relevant_occupancy = occupancy & rook_mask(square);
+    Bitboard relevant_occupancy = occupancy & rook_masks[square];
 
     int bits = rook_relevant_bits[square];
     int magic_index = (relevant_occupancy * rook_magics[square]) >> (64 - bits);
@@ -590,7 +590,7 @@ MoveList generate_rook_moves_bb(const Position& position, int square) {
 MoveList generate_bishop_moves_bb(const Position& position, int square) {
     Bitboard occupancy = position.by_color[0] | position.by_color[1];
 
-    Bitboard relevant_occupancy = occupancy & bishop_mask(square);
+    Bitboard relevant_occupancy = occupancy & bishop_masks[square];
 
     int bits = bishop_relevant_bits[square];
     int magic_index = (relevant_occupancy * bishop_magics[square]) >> (64 - bits);
@@ -697,7 +697,7 @@ bool is_square_attacked_bb(const Position& position, int square, Color by_color)
         return true;
     }
 
-    Bitboard relevant = occupancy & rook_mask(square);
+    Bitboard relevant = occupancy & rook_masks[square];
     int bits = rook_relevant_bits[square];
     int magic_index = (relevant * rook_magics[square]) >> (64 - bits);
     Bitboard rook_attacks_here = rook_attacks_table[square][magic_index];
@@ -708,7 +708,7 @@ bool is_square_attacked_bb(const Position& position, int square, Color by_color)
         return true;
     }
 
-    relevant = occupancy & bishop_mask(square);
+    relevant = occupancy & bishop_masks[square];
     bits = bishop_relevant_bits[square];
     magic_index = (relevant * bishop_magics[square]) >> (64 - bits);
     Bitboard bishop_attacks_here = bishop_attacks_table[square][magic_index];
