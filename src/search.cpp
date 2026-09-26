@@ -88,6 +88,11 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         return 0;
     }
 
+    // Проверяем правило 50 ходов
+    if (position.halfmove_clock >= 100) {
+        return 0;
+    }
+
     if (depth == 0) {
         return quiescence(position, alpha, beta, state, ply);
     }
