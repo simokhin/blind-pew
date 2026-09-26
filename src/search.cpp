@@ -278,7 +278,7 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
             // Добавляем хэш позиции в историю
             state.history.push_back(position.zobrist_hash);
 
-            int score = -negamax(position, depth - 1, state, -INFINITE, INFINITE, 1);
+            int score = -negamax(position, depth - 1, state, -INFINITE, -best_score, 1);
 
             unmake_move(position, m, undo);
 
