@@ -12,9 +12,7 @@ std::array<PromotionPiece, 4> promotion_pieces = {
     PromotionPiece::Queen,
 };
 
-MoveList generate_castling_moves(const Position& position) {
-    MoveList moves;
-
+void generate_castling_moves(const Position& position, MoveList& moves) {
     if (position.side_to_move == Color::White) {
         if (position.castling_rights & WHITE_QUEENSIDE) {
             if ((position.board[static_cast<int>(Square::B1)] == Piece::None) &&
@@ -60,8 +58,6 @@ MoveList generate_castling_moves(const Position& position) {
             }
         }
     }
-
-    return moves;
 }
 
 MoveList generate_pseudo_legal_moves(const Position& position) {
@@ -77,50 +73,32 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
         switch (piece) {
             case Piece::WP:
             case Piece::BP: {
-                MoveList pawn_moves = generate_pawn_moves_bb(position, square);
-                for (const Move& m : pawn_moves) {
-                    moves.add(m);
-                }
+                generate_pawn_moves_bb(position, square, moves);
                 break;
             }
             case Piece::WN:
             case Piece::BN: {
-                MoveList knight_moves = generate_knight_moves_bb(position, square);
-                for (const Move& m : knight_moves) {
-                    moves.add(m);
-                }
+                generate_knight_moves_bb(position, square, moves);
                 break;
             }
             case Piece::WB:
             case Piece::BB: {
-                MoveList bishop_moves = generate_bishop_moves_bb(position, square);
-                for (const Move& m : bishop_moves) {
-                    moves.add(m);
-                }
+                generate_bishop_moves_bb(position, square, moves);
                 break;
             }
             case Piece::WR:
             case Piece::BR: {
-                MoveList rook_moves = generate_rook_moves_bb(position, square);
-                for (const Move& m : rook_moves) {
-                    moves.add(m);
-                }
+                generate_rook_moves_bb(position, square, moves);
                 break;
             }
             case Piece::WQ:
             case Piece::BQ: {
-                MoveList queen_moves = generate_queen_moves_bb(position, square);
-                for (const Move& m : queen_moves) {
-                    moves.add(m);
-                }
+                generate_queen_moves_bb(position, square, moves);
                 break;
             }
             case Piece::WK:
             case Piece::BK: {
-                MoveList king_moves = generate_king_moves_bb(position, square);
-                for (const Move& m : king_moves) {
-                    moves.add(m);
-                }
+                generate_king_moves_bb(position, square, moves);
                 break;
             }
             default:
@@ -128,10 +106,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
         }
     }
 
-    MoveList castling_moves = generate_castling_moves(position);
-    for (const Move& m : castling_moves) {
-        moves.add(m);
-    }
+    generate_castling_moves(position, moves);
 
     return moves;
 }
@@ -159,6 +134,7 @@ MoveList generate_legal_moves(const Position& position) {
 
 MoveList generate_capture_moves(const Position& position) {
     MoveList moves;
+    MoveList scratch;
 
     for (int square = 0; square < 64; square++) {
         Piece piece = position.board[square];
@@ -170,8 +146,9 @@ MoveList generate_capture_moves(const Position& position) {
         switch (piece) {
             case Piece::WP:
             case Piece::BP: {
-                MoveList pawn_moves = generate_pawn_moves_bb(position, square);
-                for (const Move& m : pawn_moves) {
+                scratch.clear();
+                generate_pawn_moves_bb(position, square, scratch);
+                for (const Move& m : scratch) {
                     if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant) {
                         moves.add(m);
                     }
@@ -180,8 +157,9 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WN:
             case Piece::BN: {
-                MoveList knight_moves = generate_knight_moves_bb(position, square);
-                for (const Move& m : knight_moves) {
+                scratch.clear();
+                generate_knight_moves_bb(position, square, scratch);
+                for (const Move& m : scratch) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
                     }
@@ -190,8 +168,9 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WB:
             case Piece::BB: {
-                MoveList bishop_moves = generate_bishop_moves_bb(position, square);
-                for (const Move& m : bishop_moves) {
+                scratch.clear();
+                generate_bishop_moves_bb(position, square, scratch);
+                for (const Move& m : scratch) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
                     }
@@ -200,8 +179,9 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WR:
             case Piece::BR: {
-                MoveList rook_moves = generate_rook_moves_bb(position, square);
-                for (const Move& m : rook_moves) {
+                scratch.clear();
+                generate_rook_moves_bb(position, square, scratch);
+                for (const Move& m : scratch) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
                     }
@@ -210,8 +190,9 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WQ:
             case Piece::BQ: {
-                MoveList queen_moves = generate_queen_moves_bb(position, square);
-                for (const Move& m : queen_moves) {
+                scratch.clear();
+                generate_queen_moves_bb(position, square, scratch);
+                for (const Move& m : scratch) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
                     }
@@ -220,8 +201,9 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WK:
             case Piece::BK: {
-                MoveList king_moves = generate_king_moves_bb(position, square);
-                for (const Move& m : king_moves) {
+                scratch.clear();
+                generate_king_moves_bb(position, square, scratch);
+                for (const Move& m : scratch) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
                     }
@@ -236,9 +218,7 @@ MoveList generate_capture_moves(const Position& position) {
     return moves;
 }
 
-MoveList generate_knight_moves_bb(const Position& position, int square) {
-    MoveList moves;
-
+void generate_knight_moves_bb(const Position& position, int square, MoveList& moves) {
     Bitboard attacks = knight_attacks[square];
 
     // Убираем клетки, занятые своими фигурами
@@ -248,13 +228,9 @@ MoveList generate_knight_moves_bb(const Position& position, int square) {
         int to = pop_lsb(attacks);
         moves.add(Move(square, to));
     }
-
-    return moves;
 }
 
-MoveList generate_king_moves_bb(const Position& position, int square) {
-    MoveList moves;
-
+void generate_king_moves_bb(const Position& position, int square, MoveList& moves) {
     Bitboard attacks = king_attacks[square];
 
     // Убираем клетки, занятые своими фигурами
@@ -264,11 +240,9 @@ MoveList generate_king_moves_bb(const Position& position, int square) {
         int to = pop_lsb(attacks);
         moves.add(Move(square, to));
     }
-
-    return moves;
 }
 
-MoveList generate_rook_moves_bb(const Position& position, int square) {
+void generate_rook_moves_bb(const Position& position, int square, MoveList& moves) {
     Bitboard occupancy = position.by_color[0] | position.by_color[1];
 
     Bitboard relevant_occupancy = occupancy & rook_masks[square];
@@ -279,17 +253,13 @@ MoveList generate_rook_moves_bb(const Position& position, int square) {
     Bitboard attacks = rook_attacks_table[square][magic_index];
     attacks &= ~position.by_color[static_cast<int>(position.side_to_move)];
 
-    MoveList moves;
-
     while (attacks != 0) {
         int to = pop_lsb(attacks);
         moves.add(Move(square, to));
     }
-
-    return moves;
 }
 
-MoveList generate_bishop_moves_bb(const Position& position, int square) {
+void generate_bishop_moves_bb(const Position& position, int square, MoveList& moves) {
     Bitboard occupancy = position.by_color[0] | position.by_color[1];
 
     Bitboard relevant_occupancy = occupancy & bishop_masks[square];
@@ -300,30 +270,18 @@ MoveList generate_bishop_moves_bb(const Position& position, int square) {
     Bitboard attacks = bishop_attacks_table[square][magic_index];
     attacks &= ~position.by_color[static_cast<int>(position.side_to_move)];
 
-    MoveList moves;
-
     while (attacks != 0) {
         int to = pop_lsb(attacks);
         moves.add(Move(square, to));
     }
-
-    return moves;
 }
 
-MoveList generate_queen_moves_bb(const Position& position, int square) {
-    MoveList moves = generate_rook_moves_bb(position, square);
-    MoveList bishop_moves = generate_bishop_moves_bb(position, square);
-
-    for (const Move& m : bishop_moves) {
-        moves.add(m);
-    }
-
-    return moves;
+void generate_queen_moves_bb(const Position& position, int square, MoveList& moves) {
+    generate_rook_moves_bb(position, square, moves);
+    generate_bishop_moves_bb(position, square, moves);
 }
 
-MoveList generate_pawn_moves_bb(const Position& position, int square) {
-    MoveList moves;
-
+void generate_pawn_moves_bb(const Position& position, int square, MoveList& moves) {
     Bitboard attacks = pawn_attacks[static_cast<int>(position.side_to_move)][square];
     Bitboard occupancy = position.by_color[0] | position.by_color[1];
 
@@ -377,7 +335,6 @@ MoveList generate_pawn_moves_bb(const Position& position, int square) {
             moves.add(Move(square, double_pawn_move_to));
         }
     }
-    return moves;
 }
 
 bool is_square_attacked_bb(const Position& position, int square, Color by_color) {
@@ -434,4 +391,5 @@ const Move& MoveList::operator[](int index) const { return moves[index]; }
 const Move* MoveList::begin() const { return moves.data(); };
 const Move* MoveList::end() const { return moves.data() + count; };
 Move* MoveList::begin() { return moves.data(); };
-Move* MoveList::end() { return moves.data() + count; };
+Move* MoveList::end() { return moves.data() + count; }
+void MoveList::clear() { count = 0; };
