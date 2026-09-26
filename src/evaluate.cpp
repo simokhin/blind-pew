@@ -56,23 +56,25 @@ int evaluate(const Position& position) {
     int evaluation = 0;
     int phase = compute_phase(position);
 
-    for (int square = 0; square < 64; square++) {
-        Piece piece = position.board[square];
+    for (Piece piece : {Piece::WP, Piece::WN, Piece::WB, Piece::WR, Piece::WQ, Piece::WK, Piece::BP,
+                        Piece::BN, Piece::BB, Piece::BR, Piece::BQ, Piece::BK}) {
+        Bitboard pieces = position.by_color[static_cast<int>(color_of(piece))] &
+                          position.by_piece_type[static_cast<int>(piece_type_of(piece))];
 
-        if (piece == Piece::None) {
-            continue;
-        }
+        while (pieces != 0) {
+            int square = pop_lsb(pieces);
 
-        // Бонус за ценность фигуры
-        int value = values[static_cast<int>(piece)];
+            // Бонус за ценность фигуры
+            int value = values[static_cast<int>(piece)];
 
-        // Бонус за расположение фигур
-        value += pst_bonus(piece, square, phase);
+            // Бонус за расположение фигур
+            value += pst_bonus(piece, square, phase);
 
-        if (color_of(piece) == position.side_to_move) {
-            evaluation += value;
-        } else {
-            evaluation -= value;
+            if (color_of(piece) == position.side_to_move) {
+                evaluation += value;
+            } else {
+                evaluation -= value;
+            }
         }
     }
 
