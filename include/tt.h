@@ -27,3 +27,5 @@ void tt_store(uint64_t hash, int depth, int score, Move best_move, TTFlag flag);
 
 int encode_mate_score(int score, int ply);
 int decode_mate_score(int score, int ply);
+
+void clear_transposition_table();

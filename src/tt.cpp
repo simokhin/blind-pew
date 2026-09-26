@@ -1,5 +1,7 @@
 #include "tt.h"
 
+#include <algorithm>
+
 #include "constants.h"
 
 std::vector<TTEntry> transposition_table;
@@ -56,4 +58,8 @@ int decode_mate_score(int score, int ply) {
     } else {
         return score;
     }
+}
+
+void clear_transposition_table() {
+    std::fill(transposition_table.begin(), transposition_table.end(), TTEntry{});
 }

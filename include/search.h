@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <chrono>
 #include <vector>
 
@@ -10,7 +11,7 @@
 struct SearchState {
     long nodes = 0;
     std::chrono::steady_clock::time_point deadline;
-    bool stopped = false;
+    std::atomic<bool> stopped = false;
     int depth_reached = 0;
     std::vector<uint64_t> history;
     std::array<std::array<Move, MAX_PLY>, MAX_PLY> pv_table = {};

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include "bench.h"
 #include "constants.h"
@@ -17,7 +18,11 @@ void uci_loop() {
     std::string line;
 
     Position position = parse_fen(START_FEN);
+
     std::vector<uint64_t> position_history;
+
+    SearchState state;
+    std::thread search_thread;
 
     while (std::getline(std::cin, line)) {
         std::istringstream stream(line);
@@ -25,6 +30,10 @@ void uci_loop() {
         stream >> command;
 
         if (command == "quit") {
+            state.stopped = true;
+            if (search_thread.joinable()) {
+                search_thread.join();
+            }
             break;
         }
 
@@ -107,8 +116,6 @@ void uci_loop() {
         }
 
         if (command == "go") {
-            SearchState state;
-
             // Значения по умолчанию
             int max_depth = 64;
             state.deadline = std::chrono::steady_clock::time_point::max();
@@ -119,6 +126,13 @@ void uci_loop() {
             int btime = 0;
             int winc = 0;
             int binc = 0;
+
+            state.stopped = false;
+            state.nodes = 0;
+
+            if (search_thread.joinable()) {
+                search_thread.join();
+            }
 
             while (stream >> token) {
                 if (token == "depth") {
@@ -155,8 +169,10 @@ void uci_loop() {
 
             state.history = position_history;
 
-            Move best_move = find_best_move(position, max_depth, state);
-            std::cout << "bestmove " + move_to_uci(best_move) + "\n";
+            search_thread = std::thread([&position, &state, max_depth]() {
+                Move best_move = find_best_move(position, max_depth, state);
+                std::cout << "bestmove " + move_to_uci(best_move) + "\n";
+            });
         }
 
         if (command == "bench") {
@@ -179,6 +195,29 @@ void uci_loop() {
                     resize_transposition_table(size_mb);
                 }
             }
+        }
+
+        if (command == "stop") {
+            state.stopped = true;
+            if (search_thread.joinable()) {
+                search_thread.join();
+            }
+        }
+
+        if (command == "ucinewgame") {
+            state.stopped = true;
+            if (search_thread.joinable()) {
+                search_thread.join();
+            }
+            state.nodes = 0;
+            state.stopped = false;
+            state.depth_reached = 0;
+            state.history.clear();
+            state.pv_table = {};
+            state.pv_length = {};
+            state.killers = {};
+            state.history_heuristic = {};
+            clear_transposition_table();
         }
     }
 }

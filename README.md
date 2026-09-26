@@ -52,9 +52,9 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
   - late move reduction (LMR, graduated by depth/move index)
   - static exchange evaluation (SEE)
 - Basic UCI support
-  - uci / isready / quit
+  - uci / isready / quit / stop / ucinewgame
   - position (startpos, fen, moves)
-  - go (depth, movetime, wtime/btime/winc/binc)
+  - go (depth, movetime, wtime/btime/winc/binc, infinite)
   - setoption (Hash)
   - principal variation reporting per depth
 - Simple benchmark
