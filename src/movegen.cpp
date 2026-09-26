@@ -139,7 +139,8 @@ MoveList generate_capture_moves(const Position& position) {
         scratch.clear();
         generate_pawn_moves_bb(position, square, scratch);
         for (const Move& m : scratch) {
-            if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant) {
+            if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant ||
+                m.flag() == MoveFlag::Promotion) {
                 moves.add(m);
             }
         }

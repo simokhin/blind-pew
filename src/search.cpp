@@ -388,12 +388,23 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     MoveList moves = generate_capture_moves(position);
 
     // Сортировка через MVV-LVA
-    std::sort(moves.begin(), moves.end(), [&position](const Move& a, const Move& b) {
-        return mvv_lva_score(position, a) > mvv_lva_score(position, b);
-    });
-
+    ScoredMoveList scored_moves;
     for (const Move& m : moves) {
-        if (see_capture(position, m) < 0) {
+        int score = mvv_lva_score(position, m);
+        if (m.flag() == MoveFlag::Promotion) {
+            score += (promotion_values[static_cast<int>(m.promotion())] - 100) * 10;
+        }
+        scored_moves.add(m, score);
+    }
+    std::sort(scored_moves.begin(), scored_moves.end(),
+              [](const ScoredMove& a, const ScoredMove& b) { return a.score > b.score; });
+
+    for (const ScoredMove& sm : scored_moves) {
+        const Move& m = sm.move;
+
+        bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
+
+        if (is_capture && see_capture(position, m) < 0) {
             continue;
         }
 
@@ -500,24 +511,33 @@ ScoredMoveList sort_moves(const MoveList& moves, const Position& position, const
         if (have_tt_move && m == tt_move) {
             return 1000000;
         }
-        int score = mvv_lva_score(position, m);
-        if (score > 0) {
+
+        bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
+        bool is_promotion = m.flag() == MoveFlag::Promotion;
+        int promotion_bonus =
+            is_promotion ? (promotion_values[static_cast<int>(m.promotion())] - 100) * 10 : 0;
+
+        if (is_capture) {
+            int score = mvv_lva_score(position, m) + promotion_bonus;
             if (see_capture(position, m) < 0) {
-                score -= 10000;  // помечаем взятие, как не выгодное
+                score -= 20000;  // помечаем взятие, как не выгодное
+            } else {
+                score += MAX_HISTORY;
             }
+            return score;
+        } else if (is_promotion) {
+            return promotion_bonus + MAX_HISTORY;
         } else {
             if (m == state.killers[ply][0]) {
-                score = 51;
+                return MAX_HISTORY + 2;
             } else if (m == state.killers[ply][1]) {
-                score = 50;
+                return MAX_HISTORY + 1;
             } else {
                 // Ходы из history heuristic
-                score = std::min(state.history_heuristic[static_cast<int>(position.side_to_move)]
-                                                        [m.from()][m.to()],
-                                 49);
+                return state
+                    .history_heuristic[static_cast<int>(position.side_to_move)][m.from()][m.to()];
             }
         }
-        return score;
     };
 
     for (const Move& m : moves) {

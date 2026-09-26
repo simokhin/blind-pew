@@ -1,7 +1,7 @@
 # BlindPew
 
 <p align="center">
-  <img src="assets/blind_pew.png" width="200" alt="BlindPew logo">
+  <img src="assets/blind_pew.png" width="300" alt="BlindPew logo">
 </p>
 
 A chess engine written in C++, built as a learning project for the language and for chess engine programming.
