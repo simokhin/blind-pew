@@ -63,47 +63,42 @@ void generate_castling_moves(const Position& position, MoveList& moves) {
 MoveList generate_pseudo_legal_moves(const Position& position) {
     MoveList moves;
 
-    for (int square = 0; square < 64; square++) {
-        Piece piece = position.board[square];
+    Bitboard own = position.by_color[static_cast<int>(position.side_to_move)];
 
-        if (piece == Piece::None || color_of(piece) != position.side_to_move) {
-            continue;
-        }
+    Bitboard pawns = own & position.by_piece_type[static_cast<int>(PieceType::Pawn)];
+    while (pawns != 0) {
+        int square = pop_lsb(pawns);
+        generate_pawn_moves_bb(position, square, moves);
+    }
 
-        switch (piece) {
-            case Piece::WP:
-            case Piece::BP: {
-                generate_pawn_moves_bb(position, square, moves);
-                break;
-            }
-            case Piece::WN:
-            case Piece::BN: {
-                generate_knight_moves_bb(position, square, moves);
-                break;
-            }
-            case Piece::WB:
-            case Piece::BB: {
-                generate_bishop_moves_bb(position, square, moves);
-                break;
-            }
-            case Piece::WR:
-            case Piece::BR: {
-                generate_rook_moves_bb(position, square, moves);
-                break;
-            }
-            case Piece::WQ:
-            case Piece::BQ: {
-                generate_queen_moves_bb(position, square, moves);
-                break;
-            }
-            case Piece::WK:
-            case Piece::BK: {
-                generate_king_moves_bb(position, square, moves);
-                break;
-            }
-            default:
-                break;
-        }
+    Bitboard knights = own & position.by_piece_type[static_cast<int>(PieceType::Knight)];
+    while (knights != 0) {
+        int square = pop_lsb(knights);
+        generate_knight_moves_bb(position, square, moves);
+    }
+
+    Bitboard bishops = own & position.by_piece_type[static_cast<int>(PieceType::Bishop)];
+    while (bishops != 0) {
+        int square = pop_lsb(bishops);
+        generate_bishop_moves_bb(position, square, moves);
+    }
+
+    Bitboard rooks = own & position.by_piece_type[static_cast<int>(PieceType::Rook)];
+    while (rooks != 0) {
+        int square = pop_lsb(rooks);
+        generate_rook_moves_bb(position, square, moves);
+    }
+
+    Bitboard queen = own & position.by_piece_type[static_cast<int>(PieceType::Queen)];
+    while (queen != 0) {
+        int square = pop_lsb(queen);
+        generate_queen_moves_bb(position, square, moves);
+    }
+
+    Bitboard king = own & position.by_piece_type[static_cast<int>(PieceType::King)];
+    while (king != 0) {
+        int square = pop_lsb(king);
+        generate_king_moves_bb(position, square, moves);
     }
 
     generate_castling_moves(position, moves);
@@ -136,82 +131,77 @@ MoveList generate_capture_moves(const Position& position) {
     MoveList moves;
     MoveList scratch;
 
-    for (int square = 0; square < 64; square++) {
-        Piece piece = position.board[square];
+    Bitboard own = position.by_color[static_cast<int>(position.side_to_move)];
 
-        if (piece == Piece::None || color_of(piece) != position.side_to_move) {
-            continue;
+    Bitboard pawns = own & position.by_piece_type[static_cast<int>(PieceType::Pawn)];
+    while (pawns != 0) {
+        int square = pop_lsb(pawns);
+        scratch.clear();
+        generate_pawn_moves_bb(position, square, scratch);
+        for (const Move& m : scratch) {
+            if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant) {
+                moves.add(m);
+            }
         }
+    }
 
-        switch (piece) {
-            case Piece::WP:
-            case Piece::BP: {
-                scratch.clear();
-                generate_pawn_moves_bb(position, square, scratch);
-                for (const Move& m : scratch) {
-                    if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant) {
-                        moves.add(m);
-                    }
-                }
-                break;
+    Bitboard knights = own & position.by_piece_type[static_cast<int>(PieceType::Knight)];
+    while (knights != 0) {
+        int square = pop_lsb(knights);
+        scratch.clear();
+        generate_knight_moves_bb(position, square, scratch);
+        for (const Move& m : scratch) {
+            if (position.board[m.to()] != Piece::None) {
+                moves.add(m);
             }
-            case Piece::WN:
-            case Piece::BN: {
-                scratch.clear();
-                generate_knight_moves_bb(position, square, scratch);
-                for (const Move& m : scratch) {
-                    if (position.board[m.to()] != Piece::None) {
-                        moves.add(m);
-                    }
-                }
-                break;
+        }
+    }
+
+    Bitboard bishops = own & position.by_piece_type[static_cast<int>(PieceType::Bishop)];
+    while (bishops != 0) {
+        int square = pop_lsb(bishops);
+        scratch.clear();
+        generate_bishop_moves_bb(position, square, scratch);
+        for (const Move& m : scratch) {
+            if (position.board[m.to()] != Piece::None) {
+                moves.add(m);
             }
-            case Piece::WB:
-            case Piece::BB: {
-                scratch.clear();
-                generate_bishop_moves_bb(position, square, scratch);
-                for (const Move& m : scratch) {
-                    if (position.board[m.to()] != Piece::None) {
-                        moves.add(m);
-                    }
-                }
-                break;
+        }
+    }
+
+    Bitboard rooks = own & position.by_piece_type[static_cast<int>(PieceType::Rook)];
+    while (rooks != 0) {
+        int square = pop_lsb(rooks);
+        scratch.clear();
+        generate_rook_moves_bb(position, square, scratch);
+        for (const Move& m : scratch) {
+            if (position.board[m.to()] != Piece::None) {
+                moves.add(m);
             }
-            case Piece::WR:
-            case Piece::BR: {
-                scratch.clear();
-                generate_rook_moves_bb(position, square, scratch);
-                for (const Move& m : scratch) {
-                    if (position.board[m.to()] != Piece::None) {
-                        moves.add(m);
-                    }
-                }
-                break;
+        }
+    }
+
+    Bitboard queen = own & position.by_piece_type[static_cast<int>(PieceType::Queen)];
+    while (queen != 0) {
+        int square = pop_lsb(queen);
+        scratch.clear();
+        generate_queen_moves_bb(position, square, scratch);
+        for (const Move& m : scratch) {
+            if (position.board[m.to()] != Piece::None) {
+                moves.add(m);
             }
-            case Piece::WQ:
-            case Piece::BQ: {
-                scratch.clear();
-                generate_queen_moves_bb(position, square, scratch);
-                for (const Move& m : scratch) {
-                    if (position.board[m.to()] != Piece::None) {
-                        moves.add(m);
-                    }
-                }
-                break;
+        }
+    }
+
+    Bitboard king = own & position.by_piece_type[static_cast<int>(PieceType::King)];
+    while (king != 0) {
+        int square = pop_lsb(king);
+        scratch.clear();
+        generate_king_moves_bb(position, square, scratch);
+        for (const Move& m : scratch) {
+            if (position.board[m.to()] != Piece::None) {
+                moves.add(m);
             }
-            case Piece::WK:
-            case Piece::BK: {
-                scratch.clear();
-                generate_king_moves_bb(position, square, scratch);
-                for (const Move& m : scratch) {
-                    if (position.board[m.to()] != Piece::None) {
-                        moves.add(m);
-                    }
-                }
-                break;
-            }
-            default:
-                break;
         }
     }
 
