@@ -35,7 +35,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 ## Implemented
 
-- Mailbox 8x8 board representation
+- Bitboards
 - Move generation
 - Simple tapered evaluation
   - material
