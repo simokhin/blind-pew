@@ -39,6 +39,7 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 - Simple tapered evaluation
   - material
   - PST
+  - mobility
 - Simple search
   - negamax with alpha-beta pruning
   - iterative deepening
