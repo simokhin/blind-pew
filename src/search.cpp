@@ -26,7 +26,7 @@ bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     }
 
     // Определяем, является ли ход легальным и если нет - отменяем его
-    if (is_square_attacked(position, king_square, position.side_to_move)) {
+    if (is_square_attacked_bb(position, king_square, position.side_to_move)) {
         unmake_move(position, m, undo);
         return false;
     }
@@ -87,8 +87,8 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     }
 
     // Null move pruning
-    bool in_check = is_square_attacked(position, king_square_of(position, position.side_to_move),
-                                       opposite_color(position.side_to_move));
+    bool in_check = is_square_attacked_bb(position, king_square_of(position, position.side_to_move),
+                                          opposite_color(position.side_to_move));
 
     if (!in_check && has_non_pawn_material(position, position.side_to_move) && depth >= 3 &&
         allow_null) {
@@ -125,7 +125,7 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         // Check extention
         int opp_king_square = king_square_of(position, position.side_to_move);
         bool gives_check =
-            is_square_attacked(position, opp_king_square, opposite_color(position.side_to_move));
+            is_square_attacked_bb(position, opp_king_square, opposite_color(position.side_to_move));
 
         // Проверяем, выполнены ли условия для LMR
         bool can_reduce = depth >= 3 && move_index > 3 && !is_capture && !gives_check &&
@@ -209,7 +209,7 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     if (!has_legal_move) {
         int king_square = (position.side_to_move == Color::White) ? position.white_king_square
                                                                   : position.black_king_square;
-        if (is_square_attacked(position, king_square, opposite_color(position.side_to_move))) {
+        if (is_square_attacked_bb(position, king_square, opposite_color(position.side_to_move))) {
             return -(MATE - ply);
         }
         return 0;

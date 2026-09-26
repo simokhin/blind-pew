@@ -192,9 +192,9 @@ MoveList generate_castling_moves(const Position& position) {
             if ((position.board[static_cast<int>(Square::B1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::C1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::D1)] == Piece::None) &&
-                !is_square_attacked(position, static_cast<int>(Square::E1), Color::Black) &&
-                !is_square_attacked(position, static_cast<int>(Square::D1), Color::Black) &&
-                !is_square_attacked(position, static_cast<int>(Square::C1), Color::Black)) {
+                !is_square_attacked_bb(position, static_cast<int>(Square::E1), Color::Black) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::D1), Color::Black) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::C1), Color::Black)) {
                 moves.add(Move(static_cast<int>(Square::E1), static_cast<int>(Square::C1),
                                MoveFlag::Castling));
             }
@@ -202,9 +202,9 @@ MoveList generate_castling_moves(const Position& position) {
         if (position.castling_rights & WHITE_KINGSIDE) {
             if ((position.board[static_cast<int>(Square::F1)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::G1)] == Piece::None) &&
-                !is_square_attacked(position, static_cast<int>(Square::E1), Color::Black) &&
-                !is_square_attacked(position, static_cast<int>(Square::F1), Color::Black) &&
-                !is_square_attacked(position, static_cast<int>(Square::G1), Color::Black)) {
+                !is_square_attacked_bb(position, static_cast<int>(Square::E1), Color::Black) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::F1), Color::Black) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::G1), Color::Black)) {
                 moves.add(Move(static_cast<int>(Square::E1), static_cast<int>(Square::G1),
                                MoveFlag::Castling));
             }
@@ -214,9 +214,9 @@ MoveList generate_castling_moves(const Position& position) {
             if ((position.board[static_cast<int>(Square::B8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::C8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::D8)] == Piece::None) &&
-                !is_square_attacked(position, static_cast<int>(Square::E8), Color::White) &&
-                !is_square_attacked(position, static_cast<int>(Square::D8), Color::White) &&
-                !is_square_attacked(position, static_cast<int>(Square::C8), Color::White)) {
+                !is_square_attacked_bb(position, static_cast<int>(Square::E8), Color::White) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::D8), Color::White) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::C8), Color::White)) {
                 moves.add(Move(static_cast<int>(Square::E8), static_cast<int>(Square::C8),
                                MoveFlag::Castling));
             }
@@ -224,9 +224,9 @@ MoveList generate_castling_moves(const Position& position) {
         if (position.castling_rights & BLACK_KINGSIDE) {
             if ((position.board[static_cast<int>(Square::F8)] == Piece::None) &&
                 (position.board[static_cast<int>(Square::G8)] == Piece::None) &&
-                !is_square_attacked(position, static_cast<int>(Square::E8), Color::White) &&
-                !is_square_attacked(position, static_cast<int>(Square::F8), Color::White) &&
-                !is_square_attacked(position, static_cast<int>(Square::G8), Color::White)) {
+                !is_square_attacked_bb(position, static_cast<int>(Square::E8), Color::White) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::F8), Color::White) &&
+                !is_square_attacked_bb(position, static_cast<int>(Square::G8), Color::White)) {
                 moves.add(Move(static_cast<int>(Square::E8), static_cast<int>(Square::G8),
                                MoveFlag::Castling));
             }
@@ -375,7 +375,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
         switch (piece) {
             case Piece::WP:
             case Piece::BP: {
-                MoveList pawn_moves = generate_pawn_moves(position, square);
+                MoveList pawn_moves = generate_pawn_moves_bb(position, square);
                 for (const Move& m : pawn_moves) {
                     moves.add(m);
                 }
@@ -383,7 +383,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
             }
             case Piece::WN:
             case Piece::BN: {
-                MoveList knight_moves = generate_knight_moves(position.board, square);
+                MoveList knight_moves = generate_knight_moves_bb(position, square);
                 for (const Move& m : knight_moves) {
                     moves.add(m);
                 }
@@ -391,7 +391,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
             }
             case Piece::WB:
             case Piece::BB: {
-                MoveList bishop_moves = generate_bishop_moves(position.board, square);
+                MoveList bishop_moves = generate_bishop_moves_bb(position, square);
                 for (const Move& m : bishop_moves) {
                     moves.add(m);
                 }
@@ -399,7 +399,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
             }
             case Piece::WR:
             case Piece::BR: {
-                MoveList rook_moves = generate_rook_moves(position.board, square);
+                MoveList rook_moves = generate_rook_moves_bb(position, square);
                 for (const Move& m : rook_moves) {
                     moves.add(m);
                 }
@@ -407,7 +407,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
             }
             case Piece::WQ:
             case Piece::BQ: {
-                MoveList queen_moves = generate_queen_moves(position.board, square);
+                MoveList queen_moves = generate_queen_moves_bb(position, square);
                 for (const Move& m : queen_moves) {
                     moves.add(m);
                 }
@@ -415,7 +415,7 @@ MoveList generate_pseudo_legal_moves(const Position& position) {
             }
             case Piece::WK:
             case Piece::BK: {
-                MoveList king_moves = generate_king_moves(position.board, square);
+                MoveList king_moves = generate_king_moves_bb(position, square);
                 for (const Move& m : king_moves) {
                     moves.add(m);
                 }
@@ -447,7 +447,7 @@ MoveList generate_legal_moves(const Position& position) {
         int king_square =
             mover == Color::White ? new_position.white_king_square : new_position.black_king_square;
 
-        if (!is_square_attacked(new_position, king_square, new_position.side_to_move)) {
+        if (!is_square_attacked_bb(new_position, king_square, new_position.side_to_move)) {
             legal_moves.add(m);
         }
     }
@@ -468,7 +468,7 @@ MoveList generate_capture_moves(const Position& position) {
         switch (piece) {
             case Piece::WP:
             case Piece::BP: {
-                MoveList pawn_moves = generate_pawn_moves(position, square);
+                MoveList pawn_moves = generate_pawn_moves_bb(position, square);
                 for (const Move& m : pawn_moves) {
                     if (position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant) {
                         moves.add(m);
@@ -478,7 +478,7 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WN:
             case Piece::BN: {
-                MoveList knight_moves = generate_knight_moves(position.board, square);
+                MoveList knight_moves = generate_knight_moves_bb(position, square);
                 for (const Move& m : knight_moves) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
@@ -488,7 +488,7 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WB:
             case Piece::BB: {
-                MoveList bishop_moves = generate_bishop_moves(position.board, square);
+                MoveList bishop_moves = generate_bishop_moves_bb(position, square);
                 for (const Move& m : bishop_moves) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
@@ -498,7 +498,7 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WR:
             case Piece::BR: {
-                MoveList rook_moves = generate_rook_moves(position.board, square);
+                MoveList rook_moves = generate_rook_moves_bb(position, square);
                 for (const Move& m : rook_moves) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
@@ -508,7 +508,7 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WQ:
             case Piece::BQ: {
-                MoveList queen_moves = generate_queen_moves(position.board, square);
+                MoveList queen_moves = generate_queen_moves_bb(position, square);
                 for (const Move& m : queen_moves) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
@@ -518,7 +518,7 @@ MoveList generate_capture_moves(const Position& position) {
             }
             case Piece::WK:
             case Piece::BK: {
-                MoveList king_moves = generate_king_moves(position.board, square);
+                MoveList king_moves = generate_king_moves_bb(position, square);
                 for (const Move& m : king_moves) {
                     if (position.board[m.to()] != Piece::None) {
                         moves.add(m);
