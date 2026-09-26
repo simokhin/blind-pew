@@ -190,7 +190,6 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
     position.en_passant_target = undo.en_passant_target;
     position.halfmove_clock = undo.halfmove_clock;
     position.fullmove_number = undo.fullmove_number;
-    position.zobrist_hash = undo.zobrist_hash;
 
     position.side_to_move = (position.side_to_move == Color::White) ? Color::Black : Color::White;
 
@@ -234,6 +233,8 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
                 break;
         }
     }
+
+    position.zobrist_hash = undo.zobrist_hash;
 }
 
 int king_square_of(const Position& position, Color color) {
