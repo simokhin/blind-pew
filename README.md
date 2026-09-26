@@ -25,6 +25,7 @@ bench [depth]
 
 Runs a fixed set of test positions to the given depth (default 4), reports total nodes/time/NPS.
 
+
 ### Versioned release binaries
 
 ```bash
@@ -32,6 +33,14 @@ make snapshot NAME=<label>
 ```
 
 Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned automatically.
+
+### Match testing
+
+```bash
+tools/match.sh [BASE_REF]
+```
+
+Runs a SPRT-terminated cutechess-cli match between the current working tree and `BASE_REF` (default `HEAD`), stopping once there's enough evidence to accept or reject the improvement hypothesis. Requires `cutechess-cli` and an opening book; see the script header for environment variable overrides (time control, SPRT bounds, concurrency, hash size).
 
 ## Implemented
 
@@ -63,4 +72,3 @@ Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned 
 
 - Improve evaluation
 - Improve search
-- Improve time managment

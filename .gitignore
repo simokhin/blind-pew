@@ -6,3 +6,4 @@ compile_commands.json
 *.out
 .vscode
 bin/
+tools/openings/
