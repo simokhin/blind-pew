@@ -77,6 +77,9 @@ constexpr int bishop_pair_bonus = 50;
 constexpr int rook_open_file_bonus = 15;
 constexpr int rook_semi_open_file_bonus = 8;
 
+constexpr int doubled_pawn_penalty = 15;
+constexpr int isolated_pawn_penalty = 15;
+
 int evaluate(const Position& position) {
     int evaluation = 0;
     int phase = compute_phase(position);
@@ -272,6 +275,36 @@ int evaluate_side(const Position& position, Color color, int phase) {
         if ((own_pawns & file_mask) == 0) {
             bonus +=
                 (enemy_pawns & file_mask) == 0 ? rook_open_file_bonus : rook_semi_open_file_bonus;
+        }
+    }
+
+    // Штраф за сдвоенные пешки
+    Bitboard side_pawns = own_pawns;
+    Bitboard temp_pawns = side_pawns;
+    while (temp_pawns != 0) {
+        int square = pop_lsb(temp_pawns);
+        Bitboard file_mask = FILE_A << file_of(square);
+        if (popcount(side_pawns & file_mask) > 1) {
+            bonus -= doubled_pawn_penalty;
+        }
+    }
+
+    // Штраф за изолированные пешки
+    Bitboard temp_pawns2 = own_pawns;
+    while (temp_pawns2 != 0) {
+        int square = pop_lsb(temp_pawns2);
+        int file = file_of(square);
+
+        Bitboard adjacent_files = 0;
+        if (file > 0) {
+            adjacent_files |= FILE_A << (file - 1);
+        }
+        if (file < 7) {
+            adjacent_files |= FILE_A << (file + 1);
+        }
+
+        if ((own_pawns & adjacent_files) == 0) {
+            bonus -= isolated_pawn_penalty;
         }
     }
 
