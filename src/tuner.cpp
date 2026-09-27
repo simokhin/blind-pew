@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <iostream>
 
 #include "search.h"
 
@@ -54,6 +55,7 @@ double fit_k(std::vector<DatasetPosition>& dataset) {
         double k = i * 0.1;
 
         double error = compute_error(dataset, k);
+        std::cout << "K=" << k << " E=" << error << "\n";
 
         if (error < best_error) {
             best_error = error;
@@ -96,17 +98,33 @@ void run_tuner(std::vector<DatasetPosition>& dataset, double k) {
 
     bool improved = true;
 
+    int pass = 0;
+
     while (improved) {
         improved = false;
+
+        pass++;
+
+        std::cout << "=== Проход " << pass << " ===\n";
+
+        auto pass_start = std::chrono::steady_clock::now();
 
         for (auto& [name, param] : tunable_params) {
             if (try_delta(param, 1, dataset, k, best_error)) {  // Пробуем добавить к параметру 1
                 improved = true;
+
+                std::cout << name << ": new best E=" << best_error << "\n";
             } else if (try_delta(param, -1, dataset, k,
                                  best_error)) {  // Пробуем вычесть из параметра 1
                 improved = true;
+
+                std::cout << name << ": new best E=" << best_error << "\n";
             }
         }
+
+        auto pass_duration = std::chrono::steady_clock::now() - pass_start;
+        std::cout << "Проход занял " << std::chrono::duration<double>(pass_duration).count() / 60
+                  << " минут\n";
     }
 }
 
