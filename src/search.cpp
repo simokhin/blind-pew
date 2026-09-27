@@ -132,8 +132,7 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         constexpr int R = 2;
 
         int saved_en_passant_sq = make_null_move(position);
-        int null_score =
-            -negamax(position, depth - 1 - R, state, -beta, -beta + 1, ply + 1, false);
+        int null_score = -negamax(position, depth - 1 - R, state, -beta, -beta + 1, ply + 1, false);
         unmake_null_move(position, saved_en_passant_sq);
 
         if (!state.stopped && null_score >= beta) {
@@ -449,11 +448,11 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 }
 
 int mvv_lva_score(const Position& position, const Move& m) {
-    int victim = static_cast<int>(position.board[m.to()]);
-    int attacker = static_cast<int>(position.board[m.from()]);
+    int victim = static_cast<int>(piece_type_of(position.board[m.to()]));
+    int attacker = static_cast<int>(piece_type_of(position.board[m.from()]));
 
     if (m.flag() == MoveFlag::EnPassant) {
-        return values[static_cast<int>(Piece::WP)] * 10 - values[attacker];
+        return values[static_cast<int>(PieceType::Pawn)] * 10 - values[attacker];
     }
 
     return values[victim] * 10 - values[attacker];

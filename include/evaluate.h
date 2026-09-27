@@ -3,7 +3,7 @@
 #include "position.h"
 
 // Массив ценности фигур
-const std::array<int, 13> values = {0, 100, 320, 330, 500, 900, 0, 100, 320, 330, 500, 900, 0};
+extern std::array<int, 7> values;
 
 constexpr int TOTAL_PHASE = 24;
 
@@ -21,3 +21,6 @@ int mobility_count(Bitboard attacks, const Position& position, Color color);
 int mobility_bonus(Piece piece, int square, const Position& position, int phase);
 
 int evaluate_side(const Position& position, Color color, int phase);
+
+// Регистрирует все параметры оценки для тюнинга
+void register_eval_tunable();

@@ -3,6 +3,10 @@
 #include <algorithm>
 
 #include "magic_constants.h"
+#include "tunable_params.h"
+
+// Массив материальной ценности фигур
+std::array<int, 7> values = {100, 320, 330, 500, 900, 0, 0};
 
 // PST
 std::array<int, 64> pawn_pst = {
@@ -73,14 +77,14 @@ std::array<int, 20> queen_mobility_mg = {-10, -8, -6, -4, -2, 0,  2,  4,  6,  8,
 std::array<int, 20> queen_mobility_eg = {-18, -14, -10, -6, -2, 2,  6,  10, 14, 18,
                                          21,  24,  27,  29, 31, 32, 33, 34, 35, 35};
 
-constexpr int bishop_pair_bonus = 50;
-constexpr int rook_open_file_bonus = 15;
-constexpr int rook_semi_open_file_bonus = 8;
+int bishop_pair_bonus = 50;
+int rook_open_file_bonus = 15;
+int rook_semi_open_file_bonus = 8;
 
-constexpr int doubled_pawn_penalty = 15;
-constexpr int isolated_pawn_penalty = 15;
+int doubled_pawn_penalty = 15;
+int isolated_pawn_penalty = 15;
 
-constexpr int missing_shield_pawn_penalty = 10;
+int missing_shield_pawn_penalty = 10;
 
 std::array<int, 8> passed_pawn_bonus_mg = {0, 5, 10, 20, 35, 60, 100, 0};
 std::array<int, 8> passed_pawn_bonus_eg = {0, 10, 20, 35, 60, 100, 150, 0};
@@ -98,7 +102,7 @@ int evaluate(const Position& position) {
             int square = pop_lsb(pieces);
 
             // Бонус за ценность фигуры
-            int value = values[static_cast<int>(piece)];
+            int value = values[static_cast<int>(piece_type_of(piece))];
 
             // Бонус за расположение фигур
             value += pst_bonus(piece, square, phase);
@@ -373,4 +377,52 @@ int evaluate_side(const Position& position, Color color, int phase) {
     }
 
     return bonus;
+}
+
+void register_eval_tunable() {
+    register_tunable("pawn_value", &values[0], 0, 200);
+    register_tunable("knight_value", &values[1], 0, 400);
+    register_tunable("bishop_value", &values[2], 0, 400);
+    register_tunable("rook_value", &values[3], 0, 600);
+    register_tunable("queen_value", &values[4], 0, 1000);
+
+    register_tunable_array("pawn_pst", pawn_pst.data(), pawn_pst.size(), -100, 100);
+    register_tunable_array("knight_pst", knight_pst.data(), knight_pst.size(), -100, 100);
+    register_tunable_array("bishop_pst", bishop_pst.data(), bishop_pst.size(), -100, 100);
+    register_tunable_array("rook_pst", rook_pst.data(), rook_pst.size(), -100, 100);
+    register_tunable_array("queen_pst", queen_pst.data(), queen_pst.size(), -100, 100);
+    register_tunable_array("king_pst_mg", king_pst_mg.data(), king_pst_mg.size(), -100, 100);
+    register_tunable_array("king_pst_eg", king_pst_eg.data(), king_pst_eg.size(), -100, 100);
+
+    register_tunable_array("knight_mobility_mg", knight_mobility_mg.data(),
+                           knight_mobility_mg.size(), -100, 100);
+    register_tunable_array("knight_mobility_eg", knight_mobility_eg.data(),
+                           knight_mobility_eg.size(), -100, 100);
+    register_tunable_array("bishop_mobility_mg", bishop_mobility_mg.data(),
+                           bishop_mobility_mg.size(), -150, 150);
+    register_tunable_array("bishop_mobility_eg", bishop_mobility_eg.data(),
+                           bishop_mobility_eg.size(), -150, 150);
+    register_tunable_array("rook_mobility_mg", rook_mobility_mg.data(), rook_mobility_mg.size(),
+                           -200, 200);
+    register_tunable_array("rook_mobility_eg", rook_mobility_eg.data(), rook_mobility_eg.size(),
+                           -200, 200);
+    register_tunable_array("queen_mobility_mg", queen_mobility_mg.data(), queen_mobility_mg.size(),
+                           -100, 100);
+    register_tunable_array("queen_mobility_eg", queen_mobility_eg.data(), queen_mobility_eg.size(),
+                           -100, 100);
+
+    register_tunable_array("passed_pawn_bonus_mg", passed_pawn_bonus_mg.data(),
+                           passed_pawn_bonus_mg.size(), 0, 200);
+    register_tunable_array("passed_pawn_bonus_eg", passed_pawn_bonus_eg.data(),
+                           passed_pawn_bonus_eg.size(), 0, 300);
+
+    register_tunable("bishop_pair_bonus", &bishop_pair_bonus, 0, 100);
+
+    register_tunable("rook_open_file_bonus", &rook_open_file_bonus, 0, 100);
+    register_tunable("rook_semi_open_file_bonus", &rook_semi_open_file_bonus, 0, 100);
+
+    register_tunable("doubled_pawn_penalty", &doubled_pawn_penalty, 0, 100);
+    register_tunable("isolated_pawn_penalty", &isolated_pawn_penalty, 0, 100);
+
+    register_tunable("missing_shield_pawn_penalty", &missing_shield_pawn_penalty, 0, 100);
 }
