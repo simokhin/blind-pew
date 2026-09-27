@@ -55,6 +55,7 @@ Runs a SPRT-terminated cutechess-cli match between the current working tree and 
   - mobility
   - bishop pair, rooks on open/semi-open files, passed pawns bonus
   - doubled/isolated pawns penalty
+  - king safety (pawn shield)
 - Simple search
   - negamax with alpha-beta pruning
   - iterative deepening

@@ -80,6 +80,8 @@ constexpr int rook_semi_open_file_bonus = 8;
 constexpr int doubled_pawn_penalty = 15;
 constexpr int isolated_pawn_penalty = 15;
 
+constexpr int missing_shield_pawn_penalty = 10;
+
 std::array<int, 8> passed_pawn_bonus_mg = {0, 5, 10, 20, 35, 60, 100, 0};
 std::array<int, 8> passed_pawn_bonus_eg = {0, 10, 20, 35, 60, 100, 150, 0};
 
@@ -344,6 +346,30 @@ int evaluate_side(const Position& position, Color color, int phase) {
                       passed_pawn_bonus_eg[table_index] * phase) /
                      256;
         }
+    }
+
+    // Штраф за отсутствие пешечного щита на позиции рокированного короля
+    int king_square =
+        (color == Color::White) ? position.white_king_square : position.black_king_square;
+
+    bool castled_kingside =
+        king_square == (color == Color::White ? square_of(0, 6) : square_of(7, 6));
+
+    bool castled_queenside =
+        king_square == (color == Color::White ? square_of(0, 2) : square_of(7, 2));
+
+    if (castled_kingside || castled_queenside) {
+        int king_file = file_of(king_square);
+        int king_rank = rank_of(king_square);
+        int shield_rank = (color == Color::White) ? king_rank + 1 : king_rank - 1;
+
+        Bitboard shield_files =
+            (FILE_A << (king_file - 1)) | (FILE_A << king_file) | (FILE_A << (king_file + 1));
+        Bitboard shield_rank_mask = 0xFFULL << (8 * shield_rank);
+        Bitboard shield_mask = shield_files & shield_rank_mask;
+
+        int shield_pawns_present = popcount(own_pawns & shield_mask);
+        bonus -= (3 - shield_pawns_present) * missing_shield_pawn_penalty;
     }
 
     return bonus;
