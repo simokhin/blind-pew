@@ -80,6 +80,9 @@ constexpr int rook_semi_open_file_bonus = 8;
 constexpr int doubled_pawn_penalty = 15;
 constexpr int isolated_pawn_penalty = 15;
 
+std::array<int, 8> passed_pawn_bonus_mg = {0, 5, 10, 20, 35, 60, 100, 0};
+std::array<int, 8> passed_pawn_bonus_eg = {0, 10, 20, 35, 60, 100, 150, 0};
+
 int evaluate(const Position& position) {
     int evaluation = 0;
     int phase = compute_phase(position);
@@ -305,6 +308,41 @@ int evaluate_side(const Position& position, Color color, int phase) {
 
         if ((own_pawns & adjacent_files) == 0) {
             bonus -= isolated_pawn_penalty;
+        }
+    }
+
+    // Бонус за проходные пешки
+    Bitboard temp_pawns3 = own_pawns;
+    while (temp_pawns3 != 0) {
+        int square = pop_lsb(temp_pawns3);
+        int file = file_of(square);
+        int rank = rank_of(square);
+
+        Bitboard files_mask = FILE_A << file;
+        if (file > 0) {
+            files_mask |= FILE_A << (file - 1);
+        }
+        if (file < 7) {
+            files_mask |= FILE_A << (file + 1);
+        }
+
+        Bitboard ranks_ahead;
+        int table_index;
+        if (color == Color::White) {
+            ranks_ahead = ~0ULL << (8 * (rank + 1));
+            table_index = rank;
+        } else {
+            ranks_ahead = (1ULL << (8 * rank)) - 1;
+            table_index = 7 - rank;
+        }
+
+        bool blocked_by_own = (own_pawns & (FILE_A << file) & ranks_ahead) != 0;
+        bool is_passed = (enemy_pawns & files_mask & ranks_ahead) == 0;
+
+        if (is_passed && !blocked_by_own) {
+            bonus += (passed_pawn_bonus_mg[table_index] * (256 - phase) +
+                      passed_pawn_bonus_eg[table_index] * phase) /
+                     256;
         }
     }
 
