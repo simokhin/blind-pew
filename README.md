@@ -36,7 +36,7 @@ Runs a fixed set of test positions to the given depth (default 4), reports total
 make snapshot NAME=<label>
 ```
 
-Builds optimized Linux and Windows binaries and saves them to `bin/`, versioned automatically.
+Builds optimized Linux binary and saves it to `bin/`, versioned automatically.
 
 ### Match testing
 
