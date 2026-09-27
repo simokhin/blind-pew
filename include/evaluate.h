@@ -24,3 +24,4 @@ int evaluate_side(const Position& position, Color color, int phase);
 
 // Регистрирует все параметры оценки для тюнинга
 void register_eval_tunable();
+void print_tuned_params(std::ostream& out);

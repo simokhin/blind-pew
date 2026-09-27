@@ -1,5 +1,7 @@
 #include "evaluate.h"
 
+#include <tuner.h>
+
 #include <algorithm>
 
 #include "magic_constants.h"
@@ -425,4 +427,48 @@ void register_eval_tunable() {
     register_tunable("isolated_pawn_penalty", &isolated_pawn_penalty, 0, 100);
 
     register_tunable("missing_shield_pawn_penalty", &missing_shield_pawn_penalty, 0, 100);
+}
+
+void print_tuned_params(std::ostream& out) {
+    print_param(out, "pawn_value", values[0]);
+    print_param(out, "knight_value", values[1]);
+    print_param(out, "bishop_value", values[2]);
+    print_param(out, "rook_value", values[3]);
+    print_param(out, "queen_value", values[4]);
+
+    print_param_array(out, "pawn_pst", pawn_pst.data(), pawn_pst.size());
+    print_param_array(out, "knight_pst", knight_pst.data(), knight_pst.size());
+    print_param_array(out, "bishop_pst", bishop_pst.data(), bishop_pst.size());
+    print_param_array(out, "rook_pst", rook_pst.data(), rook_pst.size());
+    print_param_array(out, "queen_pst", queen_pst.data(), queen_pst.size());
+    print_param_array(out, "king_pst_mg", king_pst_mg.data(), king_pst_mg.size());
+    print_param_array(out, "king_pst_eg", king_pst_eg.data(), king_pst_eg.size());
+
+    print_param_array(out, "knight_mobility_mg", knight_mobility_mg.data(),
+                      knight_mobility_mg.size());
+    print_param_array(out, "knight_mobility_eg", knight_mobility_eg.data(),
+                      knight_mobility_eg.size());
+    print_param_array(out, "bishop_mobility_mg", bishop_mobility_mg.data(),
+                      bishop_mobility_mg.size());
+    print_param_array(out, "bishop_mobility_eg", bishop_mobility_eg.data(),
+                      bishop_mobility_eg.size());
+    print_param_array(out, "rook_mobility_mg", rook_mobility_mg.data(), rook_mobility_mg.size());
+    print_param_array(out, "rook_mobility_eg", rook_mobility_eg.data(), rook_mobility_eg.size());
+    print_param_array(out, "queen_mobility_mg", queen_mobility_mg.data(), queen_mobility_mg.size());
+    print_param_array(out, "queen_mobility_eg", queen_mobility_eg.data(), queen_mobility_eg.size());
+
+    print_param_array(out, "passed_pawn_bonus_mg", passed_pawn_bonus_mg.data(),
+                      passed_pawn_bonus_mg.size());
+    print_param_array(out, "passed_pawn_bonus_eg", passed_pawn_bonus_eg.data(),
+                      passed_pawn_bonus_eg.size());
+
+    print_param(out, "bishop_pair_bonus", bishop_pair_bonus);
+
+    print_param(out, "rook_open_file_bonus", rook_open_file_bonus);
+    print_param(out, "rook_semi_open_file_bonus", rook_semi_open_file_bonus);
+
+    print_param(out, "doubled_pawn_penalty", doubled_pawn_penalty);
+    print_param(out, "isolated_pawn_penalty", isolated_pawn_penalty);
+
+    print_param(out, "missing_shield_pawn_penalty", missing_shield_pawn_penalty);
 }
