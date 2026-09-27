@@ -2,7 +2,9 @@
 
 #include <chrono>
 #include <cmath>
+#include <future>
 #include <iostream>
+#include <thread>
 
 #include "search.h"
 
@@ -29,11 +31,36 @@ double sigmoid(int q, double k) { return 1.0 / (1.0 + std::pow(10.0, -k * q / 40
 
 // Считает, насколько наш прогноз отличается от реального результата партии
 double compute_error(std::vector<DatasetPosition>& dataset, double k) {
-    double error_sum = 0.0;
+    unsigned int num_threads = std::thread::hardware_concurrency();
 
-    for (DatasetPosition& dp : dataset) {
+    int chunk_size = dataset.size() / num_threads;
+
+    std::vector<std::future<double>> futures;
+
+    for (unsigned int t = 0; t < num_threads; t++) {
+        int begin = t * chunk_size;
+        int end = (t + 1) * chunk_size;
+
+        futures.push_back(
+            std::async(std::launch::async, compute_error_sum, std::ref(dataset), begin, end, k));
+    }
+
+    double error_sum = 0.0;
+    for (auto& f : futures) {
+        error_sum += f.get();
+    }
+
+    return error_sum / static_cast<double>(dataset.size());
+};
+
+double compute_error_sum(std::vector<DatasetPosition>& dataset, int begin, int end, double k) {
+    double error_sum = 0.0;
+    for (int i = begin; i < end; i++) {
+        DatasetPosition& dp = dataset[i];
+
         int qscore = compute_qscore(dp.position);
 
+        // Насколько наш прогноз отличается от реального результата партии
         double sigmoid_score = sigmoid(qscore, k);
 
         // Насколько наш прогноз отличается от реального результата партии
@@ -42,9 +69,8 @@ double compute_error(std::vector<DatasetPosition>& dataset, double k) {
         // Возводим в квадрат и прибавляем к счетчику
         error_sum += diff * diff;
     }
-
-    return error_sum / static_cast<double>(dataset.size());
-};
+    return error_sum;
+}
 
 // Функция подбора K
 double fit_k(std::vector<DatasetPosition>& dataset) {

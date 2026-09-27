@@ -7,3 +7,4 @@ compile_commands.json
 .vscode
 bin/
 tools/openings/
+tuned_params.txt
