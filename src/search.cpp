@@ -132,7 +132,8 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
         constexpr int R = 2;
 
         int saved_en_passant_sq = make_null_move(position);
-        int null_score = -negamax(position, depth - 1 - R, state, -beta, -beta + 1, ply + 1, false);
+        int null_score =
+            -negamax(position, depth - 1 - R, state, -beta, -beta + 1, ply + 1, false);
         unmake_null_move(position, saved_en_passant_sq);
 
         if (!state.stopped && null_score >= beta) {
@@ -491,19 +492,10 @@ void print_search_info(int depth, const SearchState& state, int best_score,
 }
 
 bool has_non_pawn_material(const Position& position, Color color) {
-    Piece pawn = (color == Color::White) ? Piece::WP : Piece::BP;
-    Piece king = (color == Color::White) ? Piece::WK : Piece::BK;
+    Bitboard pawns_and_king = position.by_piece_type[static_cast<int>(PieceType::Pawn)] |
+                              position.by_piece_type[static_cast<int>(PieceType::King)];
 
-    for (int square = 0; square < 64; square++) {
-        Piece piece = position.board[square];
-
-        // Если в позиции есть фигура, отличающаяся от пешки или короля, возвращаем true
-        if (color_of(piece) == color && piece != pawn && piece != king) {
-            return true;
-        }
-    }
-
-    return false;
+    return (position.by_color[static_cast<int>(color)] & ~pawns_and_king) != 0;
 }
 
 ScoredMoveList sort_moves(const MoveList& moves, const Position& position, const SearchState& state,
