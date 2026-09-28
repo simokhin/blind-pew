@@ -353,6 +353,9 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 }
 
 Move find_best_move(Position& position, int max_depth, SearchState& state) {
+    // От количества вызовов функции за игру, зависит возраст записей в таблице
+    tt_new_search();
+
     auto search_start = std::chrono::steady_clock::now();
 
     MoveList moves = generate_legal_moves(position);

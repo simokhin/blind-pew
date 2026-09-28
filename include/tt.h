@@ -16,9 +16,8 @@ struct TTEntry {
     int score;
     Move best_move;
     TTFlag flag;
+    uint8_t age = 0;
 };
-
-extern std::vector<TTEntry> transposition_table;
 
 void resize_transposition_table(int size_mb);
 
@@ -29,3 +28,5 @@ int encode_mate_score(int score, int ply);
 int decode_mate_score(int score, int ply);
 
 void clear_transposition_table();
+
+void tt_new_search();
