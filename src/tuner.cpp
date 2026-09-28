@@ -15,6 +15,7 @@
 // Оценка позиции в сантипешках
 int compute_qscore(Position& position) {
     SearchState state;
+    state.use_tt = false;
 
     // Ставим дэлдайн, чтобы поиск не прерывался из-за срабатывания функций, ответственных за
     // тайм-контроль

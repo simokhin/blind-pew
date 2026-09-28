@@ -388,15 +388,17 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     int original_alpha = alpha;
 
     // Ищем запись в таблице транспозиций
-    TTEntry* entry = tt_probe(position.zobrist_hash);
-    if (entry != nullptr) {
-        int tt_score = decode_mate_score(entry->score, ply);
-        if (entry->flag == TTFlag::Exact) {
-            return tt_score;
-        } else if (entry->flag == TTFlag::LowerBound && tt_score >= beta) {
-            return tt_score;
-        } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
-            return tt_score;
+    if (state.use_tt) {
+        TTEntry* entry = tt_probe(position.zobrist_hash);
+        if (entry != nullptr) {
+            int tt_score = decode_mate_score(entry->score, ply);
+            if (entry->flag == TTFlag::Exact) {
+                return tt_score;
+            } else if (entry->flag == TTFlag::LowerBound && tt_score >= beta) {
+                return tt_score;
+            } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
+                return tt_score;
+            }
         }
     }
 
@@ -491,7 +493,7 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     // TODO: сейчас запись сохраняется с 0 глубиной, из-за чего, в какой-то момент, места в таблице
     // для этих записей не останется. Решается это добавлением возраста для записей.
     TTFlag flag;
-    if (!state.stopped) {
+    if (!state.stopped && state.use_tt) {
         if (best <= original_alpha) {
             flag = TTFlag::UpperBound;
         } else if (best >= beta) {

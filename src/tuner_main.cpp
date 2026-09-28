@@ -1,14 +1,25 @@
+#include <zobrist.h>
+
 #include <fstream>
 #include <iostream>
 
+#include "bitboard.h"
 #include "dataset.h"
 #include "evaluate.h"
+#include "search.h"
 #include "tuner.h"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         return 1;
     }
+
+    // Инициализируем всё, что нужно для генерации ходов
+    init_knight_attacks();
+    init_king_attacks();
+    init_pawn_attacks();
+    init_rook_magics();
+    init_bishop_magics();
 
     // 1. Заполняем реестр параметрами для тюнинга
     register_eval_tunable();
