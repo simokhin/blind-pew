@@ -1,8 +1,12 @@
-.PHONY: build run debug clean snapshot tuner-build
+.PHONY: build build-windows run debug clean snapshot tuner-build
 
 build:
 	cmake -B build-release -DCMAKE_BUILD_TYPE=Release
 	cmake --build build-release --target chess_engine
+
+build-windows:
+	cmake -B build-windows -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ -DCMAKE_EXE_LINKER_FLAGS=-static
+	cmake --build build-windows --target chess_engine
 
 run: build
 	./build-release/chess_engine
@@ -12,7 +16,7 @@ debug:
 	cmake --build build
 
 clean:
-	rm -rf build build-release
+	rm -rf build build-release build-windows
 
 snapshot:
 	@if [ -z "$(NAME)" ]; then \
