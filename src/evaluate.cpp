@@ -8,7 +8,9 @@
 #include "tunable_params.h"
 
 // Массив материальной ценности фигур
-std::array<int, 7> values = {94, 334, 336, 499, 994, 0, 0};
+static std::array<int, 7> values = {94, 334, 336, 499, 994, 0, 0};
+
+constexpr int TOTAL_PHASE = 24;
 
 // PST
 std::array<int, 64> pawn_pst = {
@@ -106,42 +108,7 @@ std::array<int, 8> passed_pawn_bonus_eg = {
     0, 0, 6, 34, 62, 140, 211, 0,
 };
 
-int evaluate(const Position& position) {
-    int evaluation = 0;
-    int phase = compute_phase(position);
-
-    for (Piece piece : {Piece::WP, Piece::WN, Piece::WB, Piece::WR, Piece::WQ, Piece::WK, Piece::BP,
-                        Piece::BN, Piece::BB, Piece::BR, Piece::BQ, Piece::BK}) {
-        Bitboard pieces = position.by_color[static_cast<int>(color_of(piece))] &
-                          position.by_piece_type[static_cast<int>(piece_type_of(piece))];
-
-        while (pieces != 0) {
-            int square = pop_lsb(pieces);
-
-            // Бонус за ценность фигуры
-            int value = values[static_cast<int>(piece_type_of(piece))];
-
-            // Бонус за расположение фигур
-            value += pst_bonus(piece, square, phase);
-
-            // Бонус за мобильность фигур
-            value += mobility_bonus(piece, square, position, phase);
-
-            if (color_of(piece) == position.side_to_move) {
-                evaluation += value;
-            } else {
-                evaluation -= value;
-            }
-        }
-    }
-
-    evaluation += evaluate_side(position, position.side_to_move, phase);
-    evaluation -= evaluate_side(position, opposite_color(position.side_to_move), phase);
-
-    return evaluation;
-}
-
-int pst_bonus(Piece piece, int square, int phase) {
+static int pst_bonus(Piece piece, int square, int phase) {
     switch (piece) {
         case Piece::WP:
             return pawn_pst[square];
@@ -181,7 +148,7 @@ int pst_bonus(Piece piece, int square, int phase) {
 }
 
 // Считает, находится ли игра на стадии эндшпиля
-int compute_phase(const Position& position) {
+static int compute_phase(const Position& position) {
     int phase = TOTAL_PHASE;
 
     for (int square = 0; square < 64; square++) {
@@ -205,7 +172,7 @@ int compute_phase(const Position& position) {
     return phase;
 }
 
-int mobility_count(Bitboard attacks, const Position& position, Color color) {
+static int mobility_count(Bitboard attacks, const Position& position, Color color) {
     Bitboard enemy_pawns = position.by_color[static_cast<int>(opposite_color(color))] &
                            position.by_piece_type[static_cast<int>(PieceType::Pawn)];
 
@@ -217,7 +184,34 @@ int mobility_count(Bitboard attacks, const Position& position, Color color) {
     return popcount(moves);
 }
 
-int mobility_bonus(Piece piece, int square, const Position& position, int phase) {
+static int knight_mobility(const Position& position, int square, Color color) {
+    return mobility_count(knight_attacks[square], position, color);
+}
+
+static int bishop_mobility(const Position& position, int square, Color color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+    Bitboard attacks = bishop_attacks_from(square, occupancy);
+
+    return mobility_count(attacks, position, color);
+}
+
+static int rook_mobility(const Position& position, int square, Color color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+    Bitboard attacks = rook_attacks_from(square, occupancy);
+
+    return mobility_count(attacks, position, color);
+}
+
+static int queen_mobility(const Position& position, int square, Color color) {
+    Bitboard occupancy = position.by_color[0] | position.by_color[1];
+
+    Bitboard attacks =
+        rook_attacks_from(square, occupancy) | bishop_attacks_from(square, occupancy);
+
+    return mobility_count(attacks, position, color);
+}
+
+static int mobility_bonus(Piece piece, int square, const Position& position, int phase) {
     PieceType type = piece_type_of(piece);
     Color color = color_of(piece);
 
@@ -249,34 +243,7 @@ int mobility_bonus(Piece piece, int square, const Position& position, int phase)
     }
 }
 
-int knight_mobility(const Position& position, int square, Color color) {
-    return mobility_count(knight_attacks[square], position, color);
-}
-
-int bishop_mobility(const Position& position, int square, Color color) {
-    Bitboard occupancy = position.by_color[0] | position.by_color[1];
-    Bitboard attacks = bishop_attacks_from(square, occupancy);
-
-    return mobility_count(attacks, position, color);
-}
-
-int rook_mobility(const Position& position, int square, Color color) {
-    Bitboard occupancy = position.by_color[0] | position.by_color[1];
-    Bitboard attacks = rook_attacks_from(square, occupancy);
-
-    return mobility_count(attacks, position, color);
-}
-
-int queen_mobility(const Position& position, int square, Color color) {
-    Bitboard occupancy = position.by_color[0] | position.by_color[1];
-
-    Bitboard attacks =
-        rook_attacks_from(square, occupancy) | bishop_attacks_from(square, occupancy);
-
-    return mobility_count(attacks, position, color);
-}
-
-int evaluate_side(const Position& position, Color color, int phase) {
+static int evaluate_side(const Position& position, Color color, int phase) {
     int bonus = 0;
 
     // Бонус за пару слонов
@@ -394,6 +361,41 @@ int evaluate_side(const Position& position, Color color, int phase) {
     }
 
     return bonus;
+}
+
+int evaluate(const Position& position) {
+    int evaluation = 0;
+    int phase = compute_phase(position);
+
+    for (Piece piece : {Piece::WP, Piece::WN, Piece::WB, Piece::WR, Piece::WQ, Piece::WK, Piece::BP,
+                        Piece::BN, Piece::BB, Piece::BR, Piece::BQ, Piece::BK}) {
+        Bitboard pieces = position.by_color[static_cast<int>(color_of(piece))] &
+                          position.by_piece_type[static_cast<int>(piece_type_of(piece))];
+
+        while (pieces != 0) {
+            int square = pop_lsb(pieces);
+
+            // Бонус за ценность фигуры
+            int value = values[static_cast<int>(piece_type_of(piece))];
+
+            // Бонус за расположение фигур
+            value += pst_bonus(piece, square, phase);
+
+            // Бонус за мобильность фигур
+            value += mobility_bonus(piece, square, position, phase);
+
+            if (color_of(piece) == position.side_to_move) {
+                evaluation += value;
+            } else {
+                evaluation -= value;
+            }
+        }
+    }
+
+    evaluation += evaluate_side(position, position.side_to_move, phase);
+    evaluation -= evaluate_side(position, opposite_color(position.side_to_move), phase);
+
+    return evaluation;
 }
 
 void register_eval_tunable() {
