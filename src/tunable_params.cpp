@@ -20,3 +20,15 @@ void register_tunable_array(const std::string& base_name, int* array, int size, 
         register_tunable(name, &array[i], min, max);
     }
 }
+
+void print_param(std::ostream& out, const std::string& name, int value) {
+    out << name << " = " << value << ";\n";
+}
+
+void print_param_array(std::ostream& out, const std::string& name, int* array, int size) {
+    out << name << " = {";
+    for (int i = 0; i < size; i++) {
+        out << array[i] << ", ";
+    }
+    out << "};\n";
+}

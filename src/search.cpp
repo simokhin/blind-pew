@@ -448,14 +448,14 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 }
 
 int mvv_lva_score(const Position& position, const Move& m) {
-    int victim = static_cast<int>(piece_type_of(position.board[m.to()]));
-    int attacker = static_cast<int>(piece_type_of(position.board[m.from()]));
+    int victim = static_cast<int>(position.board[m.to()]);
+    int attacker = static_cast<int>(position.board[m.from()]);
 
     if (m.flag() == MoveFlag::EnPassant) {
-        return values[static_cast<int>(PieceType::Pawn)] * 10 - values[attacker];
+        return mvv_lva_values[static_cast<int>(Piece::WP)] * 10 - mvv_lva_values[attacker];
     }
 
-    return values[victim] * 10 - values[attacker];
+    return mvv_lva_values[victim] * 10 - mvv_lva_values[attacker];
 }
 
 void print_search_info(int depth, const SearchState& state, int best_score,

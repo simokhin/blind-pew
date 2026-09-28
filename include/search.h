@@ -44,6 +44,8 @@ class ScoredMoveList {
 
 const std::array<int, 6> see_values = {100, 320, 330, 500, 900, INFINITE};
 const std::array<int, 4> promotion_values = {320, 330, 500, 900};
+const std::array<int, 13> mvv_lva_values = {0,   100, 320, 330, 500, 900, 0,
+                                            100, 320, 330, 500, 900, 0};
 
 extern int lmr_table[64][64];
 void init_lmr_table();
