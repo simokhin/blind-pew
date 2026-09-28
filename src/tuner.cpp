@@ -2,10 +2,14 @@
 
 #include <chrono>
 #include <cmath>
+#include <filesystem>
+#include <format>
+#include <fstream>
 #include <future>
 #include <iostream>
 #include <thread>
 
+#include "evaluate.h"
 #include "search.h"
 
 // Оценка позиции в сантипешках
@@ -32,6 +36,9 @@ double sigmoid(int q, double k) { return 1.0 / (1.0 + std::pow(10.0, -k * q / 40
 // Считает, насколько наш прогноз отличается от реального результата партии
 double compute_error(std::vector<DatasetPosition>& dataset, double k) {
     unsigned int num_threads = std::thread::hardware_concurrency();
+    if (num_threads == 0) {
+        num_threads = 1;
+    }
 
     int chunk_size = dataset.size() / num_threads;
 
@@ -39,7 +46,7 @@ double compute_error(std::vector<DatasetPosition>& dataset, double k) {
 
     for (unsigned int t = 0; t < num_threads; t++) {
         int begin = t * chunk_size;
-        int end = (t + 1) * chunk_size;
+        int end = t == num_threads - 1 ? dataset.size() : (t + 1) * chunk_size;
 
         futures.push_back(
             std::async(std::launch::async, compute_error_sum, std::ref(dataset), begin, end, k));
@@ -126,10 +133,13 @@ void run_tuner(std::vector<DatasetPosition>& dataset, double k) {
 
     int pass = 0;
 
+    std::filesystem::create_directories("tuned_params");
+
     while (improved) {
         improved = false;
 
         pass++;
+        double pass_start_error = best_error;
 
         std::cout << "=== Проход " << pass << " ===\n";
 
@@ -151,17 +161,13 @@ void run_tuner(std::vector<DatasetPosition>& dataset, double k) {
         auto pass_duration = std::chrono::steady_clock::now() - pass_start;
         std::cout << "Проход занял " << std::chrono::duration<double>(pass_duration).count() / 60
                   << " минут\n";
+        std::cout << "Ошибка упала на " << pass_start_error - best_error << "\n";
+
+        save_tuned_params(std::format("tuned_params/pass_{}.txt", pass));
     }
 }
 
-void print_param(std::ostream& out, const std::string& name, int value) {
-    out << name << " = " << value << ";\n";
-}
-
-void print_param_array(std::ostream& out, const std::string& name, int* array, int size) {
-    out << name << " = {";
-    for (int i = 0; i < size; i++) {
-        out << array[i] << ", ";
-    }
-    out << "};\n";
+void save_tuned_params(const std::string& path) {
+    std::ofstream out(path);
+    print_tuned_params(out);
 }

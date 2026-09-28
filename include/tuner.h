@@ -23,6 +23,4 @@ bool try_delta(TunableParam& param, int delta, std::vector<DatasetPosition>& dat
 
 void run_tuner(std::vector<DatasetPosition>& dataset, double k);
 
-void print_param(std::ostream& out, const std::string& name, int value);
-
-void print_param_array(std::ostream& out, const std::string& name, int* array, int size);
+void save_tuned_params(const std::string& path);
