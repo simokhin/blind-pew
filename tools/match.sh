@@ -24,11 +24,11 @@ OUT=$(realpath -m "${OUT:-bin/match-$(date +%Y%m%d%H%M%S)}")
 
 mkdir -p "$OUT/base-src"
 git archive "$BASE" | tar -x -C "$OUT/base-src"
-(cd "$OUT/base-src" && make build)
-cp "$OUT/base-src/build/chess_engine" "$OUT/base"
+(cd "$OUT/base-src" && cmake -B build-release -DCMAKE_BUILD_TYPE=Release && cmake --build build-release --target chess_engine)
+cp "$OUT/base-src/build-release/chess_engine" "$OUT/base"
 
-make build
-cp build/chess_engine "$OUT/new"
+cmake -B build-release -DCMAKE_BUILD_TYPE=Release && cmake --build build-release --target chess_engine
+cp build-release/chess_engine "$OUT/new"
 
 exec "$CUTECHESS" \
     -engine name=new cmd="$OUT/new" proto=uci option.Hash="$HASH" \
