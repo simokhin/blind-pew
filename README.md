@@ -10,7 +10,7 @@ A chess engine written in C++, built as a learning project for the language and 
 
 ### Build and run
 
-The `Makefile` has `build`, `run` and `clean` targets. `make run` builds and optimized (Release) binary and starts the engine.
+The `Makefile` has `build`, `run` and `clean` targets. `make run` builds an optimized (Release) binary and starts the engine.
 
 The engine speaks UCI over stdin/stdout - connect it to a UCI-compatible GUI, or type commands directly:
 
@@ -54,6 +54,6 @@ go movetime 1000
 
 ## Credits
 
-- [Chess Programming Wikie](https://www.chesspogramming.org) - reference for most of algorithms used here
-- [Texel's Tuning Method](https://www.chessporgramming.org/Texel%27s_Tuning_Method) by Peter Österlund, author of the [Texel](https://github.com/peterosterlund2/texel) engine - basis of the evaluation tuner
+- [Chess Programming Wiki](https://chesspogramming.org) - reference for most of algorithms used here
+- [Texel's Tuning Method](https://chessporgramming.org/Texel%27s_Tuning_Method) by Peter Österlund, author of the [Texel](https://github.com/peterosterlund2/texel) engine - basis of the evaluation tuner
 - [cutechess-cli](https://github.com/cutechess/cutechess) - engine match testing

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <utility>
 
 #include "board.h"
 #include "constants.h"
@@ -220,7 +221,20 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 
     int move_index = 0;  // Нужен для LMR
 
-    for (const ScoredMove& sm : scored_moves) {
+    for (int i = 0; i < scored_moves.size(); i++) {
+        int best_idx = i;
+
+        for (int j = i + 1; j < scored_moves.size(); j++) {
+            if (scored_moves[j].score > scored_moves[best_idx].score) {
+                best_idx = j;
+            }
+        }
+
+        if (best_idx != i) {
+            std::swap(scored_moves[i], scored_moves[best_idx]);
+        }
+
+        const ScoredMove& sm = scored_moves[i];
         const Move& m = sm.move;
 
         UndoInfo undo;
@@ -501,12 +515,24 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
         }
         scored_moves.add(m, score);
     }
-    std::sort(scored_moves.begin(), scored_moves.end(),
-              [](const ScoredMove& a, const ScoredMove& b) { return a.score > b.score; });
 
     bool has_legal_move = false;
 
-    for (const ScoredMove& sm : scored_moves) {
+    for (int i = 0; i < scored_moves.size(); i++) {
+        const ScoredMove& sm = scored_moves[i];
+
+        int best_idx = i;
+
+        for (int j = i + 1; j < scored_moves.size(); j++) {
+            if (scored_moves[j].score > scored_moves[best_idx].score) {
+                best_idx = j;
+            }
+        }
+
+        if (best_idx != i) {
+            std::swap(scored_moves[i], scored_moves[best_idx]);
+        }
+
         const Move& m = sm.move;
 
         bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
@@ -559,8 +585,6 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     }
 
     // Сохраняем запись в таблицу транспозиций
-    // TODO: сейчас запись сохраняется с 0 глубиной, из-за чего, в какой-то момент, места в
-    // таблице для этих записей не останется. Решается это добавлением возраста для записей.
     TTFlag flag;
     if (!state.stopped && state.use_tt) {
         if (best <= original_alpha) {
@@ -652,10 +676,6 @@ ScoredMoveList sort_moves(const MoveList& moves, const Position& position, const
     for (const Move& m : moves) {
         scored_moves.add(m, move_score(m));
     }
-
-    // Сортировка через MVV-LVA
-    std::sort(scored_moves.begin(), scored_moves.end(),
-              [](const ScoredMove& a, const ScoredMove& b) { return a.score > b.score; });
 
     return scored_moves;
 }
