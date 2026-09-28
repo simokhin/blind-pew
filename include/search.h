@@ -19,6 +19,7 @@ struct SearchState {
     std::array<int, MAX_PLY> pv_length = {};
     std::array<std::array<Move, 2>, MAX_PLY> killers = {};
     std::array<std::array<std::array<int, 64>, 64>, 2> history_heuristic = {};
+    bool use_tt = true;  // Использовать ли таблицу транспозиций (нужно для тюнера)
 };
 
 struct ScoredMove {

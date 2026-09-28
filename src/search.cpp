@@ -35,6 +35,11 @@ const ScoredMove* ScoredMoveList::end() const { return scored_moves.data() + cou
 ScoredMove* ScoredMoveList::begin() { return scored_moves.data(); };
 ScoredMove* ScoredMoveList::end() { return scored_moves.data() + count; }
 
+static bool is_in_check(const Position& position) {
+    return is_square_attacked_bb(position, king_square_of(position, position.side_to_move),
+                                 opposite_color(position.side_to_move));
+}
+
 bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     // Определяем, чей ход был до хода
     Color mover = position.side_to_move;
@@ -124,8 +129,7 @@ int negamax(Position& position, int depth, SearchState& state, int alpha, int be
     }
 
     // Null move pruning
-    bool in_check = is_square_attacked_bb(position, king_square_of(position, position.side_to_move),
-                                          opposite_color(position.side_to_move));
+    bool in_check = is_in_check(position);
 
     if (!in_check && has_non_pawn_material(position, position.side_to_move) && depth >= 3 &&
         allow_null) {
@@ -379,18 +383,43 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 
     state.nodes++;
 
-    int stand_pat = evaluate(position);
-    int best = stand_pat;
+    bool in_check = is_in_check(position);
 
-    if (stand_pat >= beta) {
-        return stand_pat;
+    int original_alpha = alpha;
+
+    // Ищем запись в таблице транспозиций
+    TTEntry* entry = tt_probe(position.zobrist_hash);
+    if (entry != nullptr) {
+        int tt_score = decode_mate_score(entry->score, ply);
+        if (entry->flag == TTFlag::Exact) {
+            return tt_score;
+        } else if (entry->flag == TTFlag::LowerBound && tt_score >= beta) {
+            return tt_score;
+        } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
+            return tt_score;
+        }
     }
 
-    if (stand_pat > alpha) {
-        alpha = stand_pat;
+    Move best_move;
+
+    int best;
+    if (!in_check) {
+        int stand_pat = evaluate(position);
+        best = stand_pat;
+
+        if (stand_pat >= beta) {
+            return stand_pat;
+        }
+
+        if (stand_pat > alpha) {
+            alpha = stand_pat;
+        }
+    } else {
+        best = -INFINITE;
     }
 
-    MoveList moves = generate_capture_moves(position);
+    MoveList moves =
+        in_check ? generate_pseudo_legal_moves(position) : generate_capture_moves(position);
 
     // Сортировка через MVV-LVA
     ScoredMoveList scored_moves;
@@ -404,12 +433,19 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     std::sort(scored_moves.begin(), scored_moves.end(),
               [](const ScoredMove& a, const ScoredMove& b) { return a.score > b.score; });
 
+    bool has_legal_move = false;
+
     for (const ScoredMove& sm : scored_moves) {
         const Move& m = sm.move;
 
         bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
 
-        if (is_capture && see_capture(position, m) < 0) {
+        if (in_check && !is_capture && best > -MATE_THRESHOLD) {
+            continue;
+        };
+
+        // Пропускаем не выгодные взятия
+        if (!in_check && is_capture && see_capture(position, m) < 0) {
             continue;
         }
 
@@ -418,6 +454,8 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
         if (!make_legal_move(position, m, undo)) {
             continue;
         }
+
+        has_legal_move = true;
 
         // Вызываем функцию рекурсивно
         int score = -quiescence(position, -beta, -alpha, state, ply + 1);
@@ -431,6 +469,7 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
         // Обвновляем оценку
         if (score > best) {
             best = score;
+            best_move = m;
         }
 
         // Обновляем альфу
@@ -442,6 +481,26 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
         if (alpha >= beta) {
             break;
         }
+    }
+
+    if (in_check && !has_legal_move) {
+        return -(MATE - ply);
+    }
+
+    // Сохраняем запись в таблицу транспозиций
+    // TODO: сейчас запись сохраняется с 0 глубиной, из-за чего, в какой-то момент, места в таблице
+    // для этих записей не останется. Решается это добавлением возраста для записей.
+    TTFlag flag;
+    if (!state.stopped) {
+        if (best <= original_alpha) {
+            flag = TTFlag::UpperBound;
+        } else if (best >= beta) {
+            flag = TTFlag::LowerBound;
+        } else {
+            flag = TTFlag::Exact;
+        }
+
+        tt_store(position.zobrist_hash, 0, encode_mate_score(best, ply), best_move, flag);
     }
 
     return best;
