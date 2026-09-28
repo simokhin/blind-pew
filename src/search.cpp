@@ -221,6 +221,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 
     int move_index = 0;  // Нужен для LMR
 
+    // Оцениваем позицию, чтобы потом сравнить эту оценку в Futility Pruning
+    int static_eval = INFINITE;
+    if (depth == 1 && !in_check) {
+        static_eval = evaluate(position);
+    }
+
     for (int i = 0; i < scored_moves.size(); i++) {
         int best_idx = i;
 
@@ -258,6 +264,16 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         bool is_first_move = !has_legal_move;
         has_legal_move = true;
         move_index++;
+
+        // Futility pruning
+        if (depth == 1 && !in_check && !is_first_move && !is_capture && !gives_check &&
+            m.flag() != MoveFlag::Promotion && alpha > -MATE_THRESHOLD && beta < MATE_THRESHOLD) {
+            constexpr int FUTILITY_MARGIN = 350;
+            if (static_eval + FUTILITY_MARGIN <= alpha) {
+                unmake_move(position, m, undo);
+                continue;
+            }
+        }
 
         // Добавляем хэш позиции в историю
         state.history.push_back(position.zobrist_hash);
