@@ -10,7 +10,7 @@ A chess engine written in C++, built as a learning project for the language and 
 
 ### Build and run
 
-There's a `Makefile` with `build`/`run`/`clean` targets. `make run` builds and starts the engine.
+The `Makefile` has `build`, `run` and `clean` targets. `make run` builds and optimized (Release) binary and starts the engine.
 
 The engine speaks UCI over stdin/stdout - connect it to a UCI-compatible GUI, or type commands directly:
 
@@ -20,31 +20,6 @@ isready
 position startpos
 go movetime 1000
 ```
-
-### Benchmark
-
-```bash
-bench [depth]
-```
-
-Runs a fixed set of test positions to the given depth (default 4), reports total nodes/time/NPS.
-
-
-### Versioned release binaries
-
-```bash
-make snapshot NAME=<label>
-```
-
-Builds optimized Linux binary and saves it to `bin/`, versioned automatically.
-
-### Match testing
-
-```bash
-tools/match.sh [BASE_REF]
-```
-
-Runs a SPRT-terminated cutechess-cli match between the current working tree and `BASE_REF` (default `HEAD`), stopping once there's enough evidence to accept or reject the improvement hypothesis. Requires `cutechess-cli` and an opening book; see the script header for environment variable overrides (time control, SPRT bounds, concurrency, hash size).
 
 ## Implemented
 
@@ -56,6 +31,7 @@ Runs a SPRT-terminated cutechess-cli match between the current working tree and 
   - bishop pair, rooks on open/semi-open files, passed pawns bonus
   - doubled/isolated pawns penalty
   - king safety (pawn shield)
+  - parameters tuned with the Texel method
 - Simple search
   - negamax with alpha-beta pruning
   - iterative deepening
@@ -74,8 +50,10 @@ Runs a SPRT-terminated cutechess-cli match between the current working tree and 
   - setoption (Hash)
   - principal variation reporting per depth
 - Simple benchmark
+- Texel-method evaluation tuner (`chess_tuner`, multithreaded)
 
-## Next
+## Credits
 
-- Improve evaluation
-- Improve search
+- [Chess Programming Wikie](https://www.chesspogramming.org) - reference for most of algorithms used here
+- [Texel's Tuning Method](https://www.chessporgramming.org/Texel%27s_Tuning_Method) by Peter Österlund, author of the [Texel](https://github.com/peterosterlund2/texel) engine - basis of the evaluation tuner
+- [cutechess-cli](https://github.com/cutechess/cutechess) - engine match testing

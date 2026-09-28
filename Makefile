@@ -1,11 +1,15 @@
-.PHONY: build run clean snapshot tuner-build
+.PHONY: build run debug clean snapshot tuner-build
 
 build:
-	cmake -B build
-	cmake --build build
+	cmake -B build-release -DCMAKE_BUILD_TYPE=Release
+	cmake --build build-release --target chess_engine
 
 run: build
-	./build/chess_engine
+	./build-release/chess_engine
+
+debug:
+	cmake -B build -DCMAKE_BUILD_TYPE=Debug
+	cmake --build build
 
 clean:
 	rm -rf build build-release
