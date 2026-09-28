@@ -10,7 +10,8 @@
 #include "movegen.h"
 #include "tt.h"
 
-int lmr_table[64][64];
+// Инициализация таблицы для LMR
+static int lmr_table[64][64];
 
 void init_lmr_table() {
     for (int depth = 1; depth < 64; depth++) {
@@ -22,6 +23,38 @@ void init_lmr_table() {
     }
 }
 
+// Значения, используюищиеся в сортировке ходов
+constexpr std::array<int, 6> see_values = {100, 320, 330, 500, 900, INFINITE};
+constexpr std::array<int, 4> promotion_values = {320, 330, 500, 900};
+constexpr std::array<int, 13> mvv_lva_values = {0,   100, 320, 330, 500, 900, 0,
+                                                100, 320, 330, 500, 900, 0};
+
+namespace {
+// Структура хода с оценокой, нужной для сортировки
+struct ScoredMove {
+    Move move;
+    int score;
+};
+
+// Список ходов для сортировки
+class ScoredMoveList {
+   public:
+    void add(const Move& move, int score);
+    int size() const;
+
+    const ScoredMove& operator[](int index) const;
+    ScoredMove& operator[](int index);
+
+    const ScoredMove* begin() const;
+    const ScoredMove* end() const;
+    ScoredMove* begin();
+    ScoredMove* end();
+
+   private:
+    std::array<ScoredMove, MAX_MOVES> scored_moves;
+    int count = 0;
+};
+
 void ScoredMoveList::add(const Move& move, int score) {
     scored_moves[count] = {move, score};
     count++;
@@ -30,17 +63,43 @@ int ScoredMoveList::size() const { return count; }
 
 const ScoredMove& ScoredMoveList::operator[](int index) const { return scored_moves[index]; }
 ScoredMove& ScoredMoveList::operator[](int index) { return scored_moves[index]; }
+
 const ScoredMove* ScoredMoveList::begin() const { return scored_moves.data(); };
 const ScoredMove* ScoredMoveList::end() const { return scored_moves.data() + count; };
 ScoredMove* ScoredMoveList::begin() { return scored_moves.data(); };
 ScoredMove* ScoredMoveList::end() { return scored_moves.data() + count; }
+}  // namespace
+
+static ScoredMoveList sort_moves(const MoveList& moves, const Position& position,
+                                 const SearchState& state, int ply, bool have_tt_move,
+                                 const Move& tt_move);
 
 static bool is_in_check(const Position& position) {
     return is_square_attacked_bb(position, king_square_of(position, position.side_to_move),
                                  opposite_color(position.side_to_move));
 }
 
-bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
+static bool has_non_pawn_material(const Position& position, Color color) {
+    Bitboard pawns_and_king = position.by_piece_type[static_cast<int>(PieceType::Pawn)] |
+                              position.by_piece_type[static_cast<int>(PieceType::King)];
+
+    return (position.by_color[static_cast<int>(color)] & ~pawns_and_king) != 0;
+}
+
+// Оценивает ход и использует это для сортировки по принципу MVV LVA
+static int mvv_lva_score(const Position& position, const Move& m) {
+    int victim = static_cast<int>(position.board[m.to()]);
+    int attacker = static_cast<int>(position.board[m.from()]);
+
+    if (m.flag() == MoveFlag::EnPassant) {
+        return mvv_lva_values[static_cast<int>(Piece::WP)] * 10 - mvv_lva_values[attacker];
+    }
+
+    return mvv_lva_values[victim] * 10 - mvv_lva_values[attacker];
+}
+
+// Пробует сделать ход и если он был легальный, возвращает true
+static bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     // Определяем, чей ход был до хода
     Color mover = position.side_to_move;
 
@@ -65,8 +124,15 @@ bool make_legal_move(Position& position, const Move& m, UndoInfo& undo) {
     return true;
 }
 
-int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
-            bool allow_null) {
+static int see_capture(const Position& position, const Move& move);
+
+static void print_search_info(int depth, const SearchState& state, int best_score,
+                              double elapsed_seconds);
+
+static void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus);
+
+static int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
+                   bool allow_null = true) {
     if (ply >= MAX_PLY) {
         return evaluate(position);
     }
@@ -490,8 +556,8 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     }
 
     // Сохраняем запись в таблицу транспозиций
-    // TODO: сейчас запись сохраняется с 0 глубиной, из-за чего, в какой-то момент, места в таблице
-    // для этих записей не останется. Решается это добавлением возраста для записей.
+    // TODO: сейчас запись сохраняется с 0 глубиной, из-за чего, в какой-то момент, места в
+    // таблице для этих записей не останется. Решается это добавлением возраста для записей.
     TTFlag flag;
     if (!state.stopped && state.use_tt) {
         if (best <= original_alpha) {
@@ -508,17 +574,7 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     return best;
 }
 
-int mvv_lva_score(const Position& position, const Move& m) {
-    int victim = static_cast<int>(position.board[m.to()]);
-    int attacker = static_cast<int>(position.board[m.from()]);
-
-    if (m.flag() == MoveFlag::EnPassant) {
-        return mvv_lva_values[static_cast<int>(Piece::WP)] * 10 - mvv_lva_values[attacker];
-    }
-
-    return mvv_lva_values[victim] * 10 - mvv_lva_values[attacker];
-}
-
+// Печатает информацию о поиске в stdout
 void print_search_info(int depth, const SearchState& state, int best_score,
                        double elapsed_seconds) {
     // Вычисляем NPS
@@ -549,13 +605,6 @@ void print_search_info(int depth, const SearchState& state, int best_score,
 
     std::cout << "\n";
     std::cout.flush();
-}
-
-bool has_non_pawn_material(const Position& position, Color color) {
-    Bitboard pawns_and_king = position.by_piece_type[static_cast<int>(PieceType::Pawn)] |
-                              position.by_piece_type[static_cast<int>(PieceType::King)];
-
-    return (position.by_color[static_cast<int>(color)] & ~pawns_and_king) != 0;
 }
 
 ScoredMoveList sort_moves(const MoveList& moves, const Position& position, const SearchState& state,
@@ -618,8 +667,8 @@ void update_history_heuristic(SearchState& state, Color side, int from, int to, 
     value += clamped_bonus - value * std::abs(clamped_bonus) / MAX_HISTORY;
 }
 
-int see(const Position& position, int square, PieceType target_type, PieceType attacker_type,
-        Color side, Bitboard occupancy, Bitboard from_set) {
+static int see(const Position& position, int square, PieceType target_type, PieceType attacker_type,
+               Color side, Bitboard occupancy, Bitboard from_set) {
     int gain[32];
     int d = 0;
     Color current_side = side;
