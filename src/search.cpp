@@ -198,6 +198,20 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     // Null move pruning
     bool in_check = is_in_check(position);
 
+    int static_eval = INFINITE;
+
+    if (depth <= 6 && !in_check) {
+        static_eval = evaluate(position);
+    }
+
+    // Reverse futility pruning
+    if (!in_check && !pv_node && depth <= 6 && beta < MATE_THRESHOLD) {
+        int margin = 80 * depth;
+        if (static_eval - margin >= beta) {
+            return static_eval;
+        }
+    }
+
     if (!in_check && has_non_pawn_material(position, position.side_to_move) && depth >= 3 &&
         allow_null) {
         constexpr int R = 2;
@@ -220,12 +234,6 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     bool has_legal_move = false;
 
     int move_index = 0;  // Нужен для LMR
-
-    // Оцениваем позицию, чтобы потом сравнить эту оценку в Futility Pruning
-    int static_eval = INFINITE;
-    if (depth == 1 && !in_check) {
-        static_eval = evaluate(position);
-    }
 
     for (int i = 0; i < scored_moves.size(); i++) {
         int best_idx = i;
