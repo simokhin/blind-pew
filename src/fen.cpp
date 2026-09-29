@@ -3,6 +3,7 @@
 #include <cctype>
 #include <sstream>
 
+#include "evaluate.h"
 #include "zobrist.h"
 
 Position parse_fen(const std::string& fen) {
@@ -140,6 +141,8 @@ Position parse_fen(const std::string& fen) {
     }
 
     position.zobrist_hash = compute_zobrist_hash(position);
+
+    compute_material_pst(position);
 
     return position;
 }

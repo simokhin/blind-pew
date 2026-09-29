@@ -8,56 +8,89 @@
 #include "tunable_params.h"
 
 // Массив материальной ценности фигур
-static std::array<int, 7> values = {94, 334, 336, 499, 994, 0, 0};
+static std::array<int, 7> values = {86, 342, 340, 495, 1000, 0, 0};
 
 constexpr int TOTAL_PHASE = 24;
 
 // PST
-std::array<int, 64> pawn_pst = {
-    0,   0, 0,  0,  0,  0,  0,  0,  5,  3,   -8, 3,  6, 20, 22, 1, 2, -6, -2, -4, 13, 2,
-    12,  1, -1, -4, -6, 4,  2,  4,  -4, -16, 20, 9,  1, -2, 7,  5, 8, 9,  30, 19, 15, -8,
-    -14, 8, 13, 12, 45, 35, 18, -5, -4, -6,  26, 18, 0, 0,  0,  0, 0, 0,  0,  0,
+std::array<int, 64> pawn_pst_mg = {
+    0,  0,  0,  0,  0,  0,  0,  0,  5,  3,   -4, 5,  8, 20, 20, 1, 2, -6, 2,  0,  13, 4,
+    12, 1,  1,  -4, -4, 8,  4,  4,  -4, -14, 18, 5,  1, 0,  7,  3, 6, 7,  36, 25, 17, -8,
+    -6, 14, 13, 18, 45, 33, 14, -7, -6, -10, 20, 14, 0, 0,  0,  0, 0, 0,  0,  0,
 };
 
-std::array<int, 64> knight_pst = {
-    -50, -13, -26, 1,  -6,  -1, -13, -41, -14, -19, -7,  17,  14,  6,   -2,  4,
-    -20, -7,  10,  16, 23,  15, 15,  -17, -7,  1,   17,  18,  29,  23,  9,   -9,
-    2,   10,  11,  49, 25,  31, 1,   -3,  -28, -5,  21,  33,  24,  18,  3,   -31,
-    -64, -32, 6,   0,  -24, 3,  -26, -30, -96, -58, -44, -37, -32, -82, -69, -96,
+std::array<int, 64> pawn_pst_eg = {
+    0,  0,  0,  0,  0,  0,  0,  0,  5,  3,   -4, 5,  8, 20, 20, 1, 2, -6, 2,  0,  13, 4,
+    12, 1,  1,  -4, -4, 8,  4,  4,  -4, -14, 18, 5,  1, 0,  7,  3, 6, 7,  36, 25, 17, -8,
+    -6, 14, 13, 18, 45, 33, 14, -7, -6, -10, 20, 14, 0, 0,  0,  0, 0, 0,  0,  0,
 };
 
-std::array<int, 64> bishop_pst = {
-    -14, -15, -5,  -6,  -9,  -13, -26, -14, -18, 10,  -6,  -5,  5,   5,   27,  -5,
-    -6,  5,   2,   0,   4,   5,   -5,  -6,  -19, -12, -3,  4,   11,  -7,  -11, -25,
-    -22, -16, -2,  8,   6,   -16, -13, -18, -22, -10, -9,  -6,  -4,  8,   0,   -3,
-    -42, -23, -22, -25, -18, -19, -16, -36, -31, -45, -30, -36, -35, -35, -30, -34,
+std::array<int, 64> knight_pst_mg = {
+    -36, -7,  -16, 5,  0,   5,  -7,  -27, -8,   -11, 1,   21,  20,  12,  6,   6,
+    -12, 1,   14,  22, 29,  19, 19,  -9,  1,    9,   21,  22,  31,  27,  13,  -1,
+    8,   14,  17,  49, 27,  31, 7,   9,   -14,  1,   25,  33,  30,  20,  7,   -17,
+    -46, -22, 6,   8,  -14, 11, -16, -24, -100, -44, -30, -25, -16, -64, -49, -100,
 };
 
-std::array<int, 64> rook_pst = {
-    -2,  -2,  5,   4,   8,  11, -19, -5,  -19, -16, -12, -9, -9,  -5,  -6, -32,
-    -18, -15, -14, -11, -9, -8, -15, -14, -9,  -11, -11, -8, -12, -11, -8, -16,
-    -9,  -2,  1,   -2,  -8, -2, -2,  -4,  3,   4,   -3,  -1, -3,  -5,  3,  -9,
-    -2,  -1,  8,   7,   -7, 3,  0,   -4,  16,  11,  9,   4,  -2,  -2,  -4, 7,
+std::array<int, 64> knight_pst_eg = {
+    -36, -7,  -16, 5,  0,   5,  -7,  -27, -8,   -11, 1,   21,  20,  12,  6,   6,
+    -12, 1,   14,  22, 29,  19, 19,  -9,  1,    9,   21,  22,  31,  27,  13,  -1,
+    8,   14,  17,  49, 27,  31, 7,   9,   -14,  1,   25,  33,  30,  20,  7,   -17,
+    -46, -22, 6,   8,  -14, 11, -16, -24, -100, -44, -30, -25, -16, -64, -49, -100,
 };
 
-std::array<int, 64> queen_pst = {
-    30, 30, 38, 42, 37,  21,  0,  21, 23, 29, 39, 44, 49,  45, 40, 31, 13, 30, 28, 30, 33, 43,
-    41, 31, 10, 17, 21,  20,  33, 35, 42, 26, 1,  12, 11,  15, 31, 42, 36, 47, 0,  5,  18, 43,
-    51, 67, 62, 60, -10, -26, 7,  17, 18, 54, 8,  34, -12, 14, 25, 35, 28, 36, 14, 27,
+std::array<int, 64> bishop_pst_mg = {
+    -14, -13, -5,  -6,  -9,  -13, -20, -12, -14, 10,  -2,  -1,  7,   7,   25,  -5,
+    -2,  7,   8,   4,   8,   9,   -1,  -4,  -17, -8,  1,   10,  15,  -5,  -9,  -23,
+    -20, -14, -2,  10,  10,  -10, -7,  -16, -18, -10, -5,  -2,  -4,  8,   2,   -1,
+    -36, -17, -22, -23, -16, -15, -14, -30, -25, -39, -26, -28, -33, -33, -28, -34,
+};
+
+std::array<int, 64> bishop_pst_eg = {
+    -14, -13, -5,  -6,  -9,  -13, -20, -12, -14, 10,  -2,  -1,  7,   7,   25,  -5,
+    -2,  7,   8,   4,   8,   9,   -1,  -4,  -17, -8,  1,   10,  15,  -5,  -9,  -23,
+    -20, -14, -2,  10,  10,  -10, -7,  -16, -18, -10, -5,  -2,  -4,  8,   2,   -1,
+    -36, -17, -22, -23, -16, -15, -14, -30, -25, -39, -26, -28, -33, -33, -28, -34,
+};
+
+std::array<int, 64> rook_pst_mg = {
+    -4,  -2,  5,   6,  8,   7,  -17, -5,  -19, -16, -10, -7, -7,  -5,  -6,  -30,
+    -20, -15, -12, -9, -7,  -8, -13, -16, -13, -13, -13, -8, -12, -11, -10, -18,
+    -7,  -4,  -1,  -2, -10, -4, -8,  -4,  1,   2,   -7,  1,  -5,  -5,  -1,  -9,
+    0,   3,   6,   7,  -7,  3,  2,   -2,  12,  9,   9,   0,  2,   0,   0,   5,
+};
+
+std::array<int, 64> rook_pst_eg = {
+    -4,  -2,  5,   6,  8,   7,  -17, -5,  -19, -16, -10, -7, -7,  -5,  -6,  -30,
+    -20, -15, -12, -9, -7,  -8, -13, -16, -13, -13, -13, -8, -12, -11, -10, -18,
+    -7,  -4,  -1,  -2, -10, -4, -8,  -4,  1,   2,   -7,  1,  -5,  -5,  -1,  -9,
+    0,   3,   6,   7,  -7,  3,  2,   -2,  12,  9,   9,   0,  2,   0,   0,   5,
+};
+
+std::array<int, 64> queen_pst_mg = {
+    30, 28, 34, 42, 35, 21,  4,  21, 25, 31, 35, 42, 45,  39, 38, 29, 11, 28, 32, 34, 35, 43,
+    43, 29, 10, 19, 21, 24,  37, 35, 40, 30, 3,  14, 13,  21, 33, 42, 34, 47, 2,  7,  16, 39,
+    53, 63, 64, 64, -4, -16, 7,  19, 16, 52, 14, 38, -12, 12, 25, 33, 30, 32, 8,  23,
+};
+
+std::array<int, 64> queen_pst_eg = {
+    30, 28, 34, 42, 35, 21,  4,  21, 25, 31, 35, 42, 45,  39, 38, 29, 11, 28, 32, 34, 35, 43,
+    43, 29, 10, 19, 21, 24,  37, 35, 40, 30, 3,  14, 13,  21, 33, 42, 34, 47, 2,  7,  16, 39,
+    53, 63, 64, 64, -4, -16, 7,  19, 16, 52, 14, 38, -12, 12, 25, 33, 30, 32, 8,  23,
 };
 
 std::array<int, 64> king_pst_mg = {
-    -32, 55, 41,  -62, 8,   -23, 60,  35,  48,  6,  -33, -62, -43, -24, 17,  19,
-    5,   5,  -80, -56, -89, -43, -17, -19, -24, 25, -29, -61, -61, -68, -21, -65,
-    -7,  12, 3,   -5,  -46, -40, 28,  -41, 17,  94, 40,  40,  -8,  67,  69,  7,
-    39,  91, 68,  10,  54,  45,  12,  -71, 67,  64, 77,  61,  57,  78,  59,  15,
+    -40, 45, 35,  -48, 8,   -19, 60,  37,  50, 0,   -29, -54, -41, -42, 17,  21,
+    23,  17, -48, -68, -73, -55, -15, -27, 2,  51,  19,  -57, -49, -64, -31, -57,
+    17,  28, 63,  7,   -34, 6,   52,  -53, 45, 100, 52,  80,  14,  99,  83,  5,
+    41,  99, 100, 34,  78,  45,  0,   -47, 99, 96,  97,  99,  61,  98,  79,  7,
 };
 
 std::array<int, 64> king_pst_eg = {
-    -54, -49, 3,   -15, -32, -24, -32, -77, -45, -19, 3,   18,  9,   9,   -9,  -32,
-    -43, -12, 13,  14,  27,  13,  3,   -21, -46, -16, 9,   17,  23,  20,  2,   -15,
-    -32, -9,  9,   10,  17,  22,  11,  -7,  -28, -8,  -1,  -1,  10,  11,  15,  -8,
-    -37, -17, -14, -7,  -11, 11,  11,  5,   -92, -39, -42, -28, -31, -25, -29, -39,
+    -42, -41, 7,   -15, -28, -24, -28, -77, -41, -11, 7,   18,  13,  15,  -7,  -34,
+    -39, -12, 15,  24,  27,  21,  5,   -17, -44, -16, 5,   21,  23,  24,  8,   -11,
+    -32, -9,  -1,  10,  17,  14,  7,   -1,  -28, -4,  -1,  -11, 6,   5,   11,  -6,
+    -35, -17, -18, -11, -15, 11,  13,  1,   -82, -37, -42, -38, -31, -29, -37, -51,
 };
 
 std::array<int, 13> phase_weights = {0, 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0};
@@ -65,71 +98,111 @@ std::array<int, 13> phase_weights = {0, 0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0};
 // Mobility bonus (S(mg, eg)) по числу доступных "безопасных" клеток.
 
 std::array<int, 9> knight_mobility_mg = {
-    -40, -11, 0, 8, 16, 24, 31, 33, 41,
+    -28, 1, 12, 20, 28, 34, 39, 41, 49,
 };
 std::array<int, 9> knight_mobility_eg = {
-    -63, -42, -17, -18, -16, -11, -16, -14, -38,
+    -99, -78, -57, -54, -52, -45, -48, -44, -66,
 };
 
 std::array<int, 14> bishop_mobility_mg = {
-    -9, 9, 16, 28, 35, 39, 39, 46, 51, 62, 64, 91, 74, 68,
+    3, 15, 26, 34, 41, 43, 45, 52, 53, 62, 66, 95, 66, 104,
 };
 std::array<int, 14> bishop_mobility_eg = {
-    -23, -28, -13, -7, 7, 20, 27, 23, 27, 14, 24, 1, 25, 2,
+    -51, -44, -35, -25, -15, -4, 5, -1, 7, -6, 0, -19, 5, -26,
 };
 
 std::array<int, 15> rook_mobility_mg = {
-    -12, -1, -3, -1, -1, 4, 10, 14, 20, 30, 38, 39, 42, 41, 73,
+    -12, -1, -3, -1, -1, 8, 14, 18, 26, 30, 34, 43, 42, 55, 73,
 };
 std::array<int, 15> rook_mobility_eg = {
-    31, 33, 44, 54, 64, 75, 73, 81, 79, 77, 76, 81, 85, 80, 66,
+    39, 45, 56, 60, 68, 69, 71, 73, 69, 73, 72, 73, 77, 66, 58,
 };
 
 std::array<int, 20> queen_mobility_mg = {
-    0, -1, -2, 2, 5, 7, 9, 10, 14, 16, 17, 20, 20, 20, 27, 26, 28, 38, 47, 79,
+    -4, -3, -2, 2, 5, 9, 9, 10, 14, 16, 17, 20, 20, 20, 19, 18, 20, 26, 37, 59,
 };
 std::array<int, 20> queen_mobility_eg = {
-    -63, -54, -44, -28, -14, 10, 13, 37, 40, 61, 64, 80, 86, 88, 98, 99, 100, 93, 94, 94,
+    -81, -48, -50, -28, -20, -8, 13, 33, 32, 53, 56, 68, 76, 80, 98, 95, 100, 99, 100, 100,
 };
 
-int bishop_pair_bonus = 43;
+int bishop_pair_bonus = 47;
 int rook_open_file_bonus = 21;
-int rook_semi_open_file_bonus = 18;
+int rook_semi_open_file_bonus = 16;
 
-int doubled_pawn_penalty = 7;
-int isolated_pawn_penalty = 12;
+int doubled_pawn_penalty = 5;
+int isolated_pawn_penalty = 14;
 
 int missing_shield_pawn_penalty = 11;
 
 std::array<int, 8> passed_pawn_bonus_mg = {
-    0, 0, 0, 3, 0, 7, 6, 0,
+    0, 0, 0, 1, 4, 1, 6, 0,
 };
 std::array<int, 8> passed_pawn_bonus_eg = {
-    0, 0, 6, 34, 62, 140, 211, 0,
+    0, 10, 14, 38, 66, 138, 215, 0,
 };
 
 static int pst_bonus(Piece piece, int square, int phase) {
     switch (piece) {
-        case Piece::WP:
-            return pawn_pst[square];
-        case Piece::BP:
-            return pawn_pst[mirror_square(square)];
-        case Piece::WN:
-            return knight_pst[square];
-        case Piece::BN:
-            return knight_pst[mirror_square(square)];
-        case Piece::WB:
-            return bishop_pst[square];
-        case Piece::BB:
-            return bishop_pst[mirror_square(square)];
-        case Piece::WR:
-            return rook_pst[square];
-        case Piece::BR:
-            return rook_pst[mirror_square(square)];
-        case Piece::WQ:
-            return queen_pst[square];
-        case Piece::BQ:
-            return queen_pst[mirror_square(square)];
+        case Piece::WP: {
+            int mg = pawn_pst_mg[square];
+            int eg = pawn_pst_eg[square];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::BP: {
+            int mg = pawn_pst_mg[mirror_square(square)];
+            int eg = pawn_pst_eg[mirror_square(square)];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::WN: {
+            int mg = knight_pst_mg[square];
+            int eg = knight_pst_eg[square];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::BN: {
+            int mg = knight_pst_mg[mirror_square(square)];
+            int eg = knight_pst_eg[mirror_square(square)];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::WB: {
+            int mg = bishop_pst_mg[square];
+            int eg = bishop_pst_eg[square];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::BB: {
+            int mg = bishop_pst_mg[mirror_square(square)];
+            int eg = bishop_pst_eg[mirror_square(square)];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::WR: {
+            int mg = rook_pst_mg[square];
+            int eg = rook_pst_eg[square];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::BR: {
+            int mg = rook_pst_mg[mirror_square(square)];
+            int eg = rook_pst_eg[mirror_square(square)];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::WQ: {
+            int mg = queen_pst_mg[square];
+            int eg = queen_pst_eg[square];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
+        case Piece::BQ: {
+            int mg = queen_pst_mg[mirror_square(square)];
+            int eg = queen_pst_eg[mirror_square(square)];
+
+            return (mg * (256 - phase) + eg * phase) / 256;
+        }
         case Piece::WK: {
             int mg = king_pst_mg[square];
             int eg = king_pst_eg[square];
@@ -367,6 +440,11 @@ int evaluate(const Position& position) {
     int evaluation = 0;
     int phase = compute_phase(position);
 
+    int material_pst =
+        (position.material_pst_score_mg * (256 - phase) + position.material_pst_score_eg * phase) /
+        256;
+    evaluation += (position.side_to_move == Color::White) ? material_pst : -material_pst;
+
     for (Piece piece : {Piece::WP, Piece::WN, Piece::WB, Piece::WR, Piece::WQ, Piece::WK, Piece::BP,
                         Piece::BN, Piece::BB, Piece::BR, Piece::BQ, Piece::BK}) {
         Bitboard pieces = position.by_color[static_cast<int>(color_of(piece))] &
@@ -375,14 +453,8 @@ int evaluate(const Position& position) {
         while (pieces != 0) {
             int square = pop_lsb(pieces);
 
-            // Бонус за ценность фигуры
-            int value = values[static_cast<int>(piece_type_of(piece))];
-
-            // Бонус за расположение фигур
-            value += pst_bonus(piece, square, phase);
-
             // Бонус за мобильность фигур
-            value += mobility_bonus(piece, square, position, phase);
+            int value = mobility_bonus(piece, square, position, phase);
 
             if (color_of(piece) == position.side_to_move) {
                 evaluation += value;
@@ -405,11 +477,21 @@ void register_eval_tunable() {
     register_tunable("rook_value", &values[3], 0, 600);
     register_tunable("queen_value", &values[4], 0, 1000);
 
-    register_tunable_array("pawn_pst", pawn_pst.data(), pawn_pst.size(), -100, 100);
-    register_tunable_array("knight_pst", knight_pst.data(), knight_pst.size(), -100, 100);
-    register_tunable_array("bishop_pst", bishop_pst.data(), bishop_pst.size(), -100, 100);
-    register_tunable_array("rook_pst", rook_pst.data(), rook_pst.size(), -100, 100);
-    register_tunable_array("queen_pst", queen_pst.data(), queen_pst.size(), -100, 100);
+    register_tunable_array("pawn_pst_mg", pawn_pst_mg.data(), pawn_pst_mg.size(), -100, 100);
+    register_tunable_array("pawn_pst_eg", pawn_pst_eg.data(), pawn_pst_eg.size(), -100, 100);
+
+    register_tunable_array("knight_pst_mg", knight_pst_mg.data(), knight_pst_mg.size(), -100, 100);
+    register_tunable_array("knight_pst_eg", knight_pst_eg.data(), knight_pst_eg.size(), -100, 100);
+
+    register_tunable_array("bishop_pst_mg", bishop_pst_mg.data(), bishop_pst_mg.size(), -100, 100);
+    register_tunable_array("bishop_pst_eg", bishop_pst_eg.data(), bishop_pst_eg.size(), -100, 100);
+
+    register_tunable_array("rook_pst_mg", rook_pst_mg.data(), rook_pst_mg.size(), -100, 100);
+    register_tunable_array("rook_pst_eg", rook_pst_eg.data(), rook_pst_eg.size(), -100, 100);
+
+    register_tunable_array("queen_pst_mg", queen_pst_mg.data(), queen_pst_mg.size(), -100, 100);
+    register_tunable_array("queen_pst_eg", queen_pst_eg.data(), queen_pst_eg.size(), -100, 100);
+
     register_tunable_array("king_pst_mg", king_pst_mg.data(), king_pst_mg.size(), -100, 100);
     register_tunable_array("king_pst_eg", king_pst_eg.data(), king_pst_eg.size(), -100, 100);
 
@@ -453,11 +535,21 @@ void print_tuned_params(std::ostream& out) {
     print_param(out, "rook_value", values[3]);
     print_param(out, "queen_value", values[4]);
 
-    print_param_array(out, "pawn_pst", pawn_pst.data(), pawn_pst.size());
-    print_param_array(out, "knight_pst", knight_pst.data(), knight_pst.size());
-    print_param_array(out, "bishop_pst", bishop_pst.data(), bishop_pst.size());
-    print_param_array(out, "rook_pst", rook_pst.data(), rook_pst.size());
-    print_param_array(out, "queen_pst", queen_pst.data(), queen_pst.size());
+    print_param_array(out, "pawn_pst_mg", pawn_pst_mg.data(), pawn_pst_mg.size());
+    print_param_array(out, "pawn_pst_eg", pawn_pst_eg.data(), pawn_pst_eg.size());
+
+    print_param_array(out, "knight_pst_mg", knight_pst_mg.data(), knight_pst_mg.size());
+    print_param_array(out, "knight_pst_eg", knight_pst_eg.data(), knight_pst_eg.size());
+
+    print_param_array(out, "bishop_pst_mg", bishop_pst_mg.data(), bishop_pst_mg.size());
+    print_param_array(out, "bishop_pst_eg", bishop_pst_eg.data(), bishop_pst_eg.size());
+
+    print_param_array(out, "rook_pst_mg", rook_pst_mg.data(), rook_pst_mg.size());
+    print_param_array(out, "rook_pst_eg", rook_pst_eg.data(), rook_pst_eg.size());
+
+    print_param_array(out, "queen_pst_mg", queen_pst_mg.data(), queen_pst_mg.size());
+    print_param_array(out, "queen_pst_eg", queen_pst_eg.data(), queen_pst_eg.size());
+
     print_param_array(out, "king_pst_mg", king_pst_mg.data(), king_pst_mg.size());
     print_param_array(out, "king_pst_eg", king_pst_eg.data(), king_pst_eg.size());
 
@@ -488,4 +580,31 @@ void print_tuned_params(std::ostream& out) {
     print_param(out, "isolated_pawn_penalty", isolated_pawn_penalty);
 
     print_param(out, "missing_shield_pawn_penalty", missing_shield_pawn_penalty);
+}
+
+int material_pst_value_mg(Piece piece, int square) {
+    return values[static_cast<int>(piece_type_of(piece))] + pst_bonus(piece, square, 0);
+}
+
+int material_pst_value_eg(Piece piece, int square) {
+    return values[static_cast<int>(piece_type_of(piece))] + pst_bonus(piece, square, 256);
+}
+
+void compute_material_pst(Position& position) {
+    position.material_pst_score_mg = 0;
+    position.material_pst_score_eg = 0;
+
+    for (Piece piece : {Piece::WP, Piece::WN, Piece::WB, Piece::WR, Piece::WQ, Piece::BP, Piece::BN,
+                        Piece::BB, Piece::BR, Piece::BQ, Piece::WK, Piece::BK}) {
+        Bitboard pieces = position.by_color[static_cast<int>(color_of(piece))] &
+                          position.by_piece_type[static_cast<int>(piece_type_of(piece))];
+
+        while (pieces != 0) {
+            int square = pop_lsb(pieces);
+            int sign = (color_of(piece) == Color::White) ? 1 : -1;
+
+            position.material_pst_score_mg += sign * material_pst_value_mg(piece, square);
+            position.material_pst_score_eg += sign * material_pst_value_eg(piece, square);
+        }
+    }
 }

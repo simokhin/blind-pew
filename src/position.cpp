@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "evaluate.h"
 #include "zobrist.h"
 
 UndoInfo make_move(Position& position, const Move& move) {
@@ -21,6 +22,8 @@ UndoInfo make_move(Position& position, const Move& move) {
         .halfmove_clock = position.halfmove_clock,
         .fullmove_number = position.fullmove_number,
         .zobrist_hash = position.zobrist_hash,
+        .material_pst_score_mg = position.material_pst_score_mg,
+        .material_pst_score_eg = position.material_pst_score_eg,
     };
 
     Piece moving_piece = position.board[move.from()];
@@ -235,6 +238,8 @@ void unmake_move(Position& position, const Move& move, const UndoInfo& undo) {
     }
 
     position.zobrist_hash = undo.zobrist_hash;
+    position.material_pst_score_mg = undo.material_pst_score_mg;
+    position.material_pst_score_eg = undo.material_pst_score_eg;
 }
 
 int king_square_of(const Position& position, Color color) {
@@ -249,6 +254,10 @@ void put_piece(Position& position, Piece piece, int square) {
     position.by_piece_type[static_cast<int>(piece_type_of(piece))] |= square_bb(square);
 
     position.zobrist_hash ^= piece_square_keys[static_cast<int>(piece)][square];
+
+    int sign = (color_of(piece) == Color::White) ? 1 : -1;
+    position.material_pst_score_mg += sign * material_pst_value_mg(piece, square);
+    position.material_pst_score_eg += sign * material_pst_value_eg(piece, square);
 }
 
 void remove_piece(Position& position, int square) {
@@ -259,6 +268,10 @@ void remove_piece(Position& position, int square) {
     // Снимаем биты
     position.by_color[static_cast<int>(color_of(piece))] &= ~square_bb(square);
     position.by_piece_type[static_cast<int>(piece_type_of(piece))] &= ~square_bb(square);
+
+    int sign = (color_of(piece) == Color::White) ? 1 : -1;
+    position.material_pst_score_mg -= sign * material_pst_value_mg(piece, square);
+    position.material_pst_score_eg -= sign * material_pst_value_eg(piece, square);
 }
 
 void move_piece(Position& position, int from, int to) {
@@ -273,6 +286,12 @@ void move_piece(Position& position, int from, int to) {
     position.by_color[static_cast<int>(color_of(piece))] ^= square_bb(from) | square_bb(to);
     position.by_piece_type[static_cast<int>(piece_type_of(piece))] ^=
         square_bb(from) | square_bb(to);
+
+    int sign = (color_of(piece) == Color::White) ? 1 : -1;
+    position.material_pst_score_mg +=
+        sign * (material_pst_value_mg(piece, to) - material_pst_value_mg(piece, from));
+    position.material_pst_score_eg +=
+        sign * (material_pst_value_eg(piece, to) - material_pst_value_eg(piece, from));
 }
 
 int make_null_move(Position& position) {

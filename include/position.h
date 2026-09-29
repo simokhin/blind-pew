@@ -27,6 +27,9 @@ struct Position {
     int black_king_square;
 
     uint64_t zobrist_hash;
+
+    int material_pst_score_mg;
+    int material_pst_score_eg;
 };
 
 struct UndoInfo {
@@ -36,6 +39,8 @@ struct UndoInfo {
     int halfmove_clock;
     int fullmove_number;
     uint64_t zobrist_hash;
+    int material_pst_score_mg;
+    int material_pst_score_eg;
 };
 
 UndoInfo make_move(Position& position, const Move& move);
