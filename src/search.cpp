@@ -304,12 +304,21 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
                 reduction = std::max(0, std::min(reduction, depth - 2));
             }
 
+            int full_depth = gives_check ? depth : std::max(depth - 1, 0);
             int search_depth = gives_check ? depth : std::max(depth - 1 - reduction, 0);
 
+            // 1. Сокращенный поиск с нулевым окном
             score = -negamax(position, search_depth, state, -alpha - 1, -alpha, ply + 1);
+
+            // 2. Если сокращение дало fail-high, перепроверяем на полной глубине
+            if (score > alpha && reduction > 0) {
+                score = -negamax(position, full_depth, state, -alpha - 1, -alpha, ply + 1);
+            }
+
+            // 3. Если и на полной глубине fail-high, и мы в PV-узле - переискиваем с полным окном
+            // ради точной оценки.
             if (score > alpha && score < beta) {
-                score = -negamax(position, gives_check ? depth : depth - 1, state, -beta, -alpha,
-                                 ply + 1);
+                score = -negamax(position, full_depth, state, -beta, -alpha, ply + 1);
             }
         }
 
