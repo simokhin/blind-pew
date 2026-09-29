@@ -200,12 +200,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 
     int static_eval = INFINITE;
 
-    if (depth <= 6 && !in_check) {
+    if (depth <= 11 && !in_check) {
         static_eval = evaluate(position);
     }
 
     // Reverse futility pruning
-    if (!in_check && !pv_node && depth <= 6 && beta < MATE_THRESHOLD) {
+    if (!in_check && !pv_node && depth <= 11 && beta < MATE_THRESHOLD) {
         int margin = 80 * depth;
         if (static_eval - margin >= beta) {
             return static_eval;
@@ -403,8 +403,21 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 
     Move best_move = moves[0];
 
+    int prev_score = 0;
+    constexpr int ASPIRATION_WINDOW = 20;
+
     // Iterative deepening
     for (int depth = 1; depth <= max_depth && !state.stopped; depth++) {
+        int alpha = -INFINITE;
+        int beta = INFINITE;
+
+        int window = ASPIRATION_WINDOW;
+
+        if (depth >= 4) {
+            alpha = std::max(-INFINITE, prev_score - ASPIRATION_WINDOW);
+            beta = std::min(INFINITE, prev_score + ASPIRATION_WINDOW);
+        }
+
         // Не начинаем новую итерацию, если на нее нет времени
         if (depth > 1) {
             auto elapsed = std::chrono::steady_clock::now() - search_start;
@@ -418,15 +431,15 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 
         Move current_best_move;
 
-        for (const Move& m : moves) {
-            UndoInfo undo = make_move(position, m);
+        while (true) {
+            UndoInfo undo = make_move(position, moves[0]);
 
             // Добавляем хэш позиции в историю
             state.history.push_back(position.zobrist_hash);
 
-            int score = -negamax(position, depth - 1, state, -INFINITE, -best_score, 1);
+            int score = -negamax(position, depth - 1, state, -beta, -alpha, 1);
 
-            unmake_move(position, m, undo);
+            unmake_move(position, moves[0], undo);
 
             // Удаляем хэш позиции из истории
             state.history.pop_back();
@@ -435,16 +448,54 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
                 break;
             }
 
-            if (score > best_score) {
+            if (score <= alpha) {
+                alpha = std::max(-INFINITE, alpha - window);
+                window += window / 3;
+            } else if (score >= beta) {
+                beta = std::min(INFINITE, beta + window);
+                window += window / 3;
+            } else {
                 best_score = score;
-                current_best_move = m;
+                current_best_move = moves[0];
 
-                // Обновляем principal variation table
-                state.pv_table[0][0] = m;
+                state.pv_table[0][0] = moves[0];
                 for (int i = 0; i < state.pv_length[1]; i++) {
                     state.pv_table[0][i + 1] = state.pv_table[1][i];
                 }
                 state.pv_length[0] = state.pv_length[1] + 1;
+
+                break;
+            }
+        }
+
+        if (!state.stopped) {
+            for (int i = 1; i < moves.size(); i++) {
+                const Move& m = moves[i];
+
+                UndoInfo undo = make_move(position, m);
+                state.history.push_back(position.zobrist_hash);
+
+                int score = -negamax(position, depth - 1, state, -INFINITE, -best_score, 1);
+
+                unmake_move(position, m, undo);
+
+                state.history.pop_back();
+
+                if (state.stopped) {
+                    break;
+                }
+
+                if (score > best_score) {
+                    best_score = score;
+                    current_best_move = m;
+
+                    // Обновляем principal variation table
+                    state.pv_table[0][0] = m;
+                    for (int i = 0; i < state.pv_length[1]; i++) {
+                        state.pv_table[0][i + 1] = state.pv_table[1][i];
+                    }
+                    state.pv_length[0] = state.pv_length[1] + 1;
+                }
             }
         }
 
@@ -464,6 +515,8 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
                 std::chrono::duration<double>(search_end - search_start).count();
 
             print_search_info(depth, state, best_score, elapsed_seconds);
+
+            prev_score = best_score;
         }
     }
 
