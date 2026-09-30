@@ -194,12 +194,11 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         }
     }
 
-    // Null move pruning
     bool in_check = is_in_check(position);
 
     int static_eval = INFINITE;
 
-    if (depth <= 11 && !in_check) {
+    if (!in_check) {
         static_eval = evaluate(position);
     }
 
@@ -212,7 +211,7 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     }
 
     if (!in_check && has_non_pawn_material(position, position.side_to_move) && depth >= 3 &&
-        allow_null) {
+        allow_null && static_eval >= beta) {
         constexpr int R = 2;
 
         int saved_en_passant_sq = make_null_move(position);
