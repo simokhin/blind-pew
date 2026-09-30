@@ -30,6 +30,9 @@ struct SearchState {
     std::array<std::array<std::array<int, 64>, 64>, 2> history_heuristic = {};
 
     bool use_tt = true;  // Использовать ли таблицу транспозиций (нужно для тюнера)
+
+    long soft_node_limit = 0;
+    long hard_node_limit = 0;
 };
 
 // Инициализирует таблицы, нужные для LMR

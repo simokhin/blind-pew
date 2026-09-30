@@ -5,6 +5,7 @@
 #include "bitboard.h"
 #include "board.h"
 #include "move.h"
+#include "nnue.h"
 
 constexpr uint8_t WHITE_KINGSIDE = 1;
 constexpr uint8_t WHITE_QUEENSIDE = 2;
@@ -28,8 +29,7 @@ struct Position {
 
     uint64_t zobrist_hash;
 
-    int material_pst_score_mg;
-    int material_pst_score_eg;
+    std::array<Accumulator, 2> accumulators;
 };
 
 struct UndoInfo {
@@ -39,8 +39,7 @@ struct UndoInfo {
     int halfmove_clock;
     int fullmove_number;
     uint64_t zobrist_hash;
-    int material_pst_score_mg;
-    int material_pst_score_eg;
+    std::array<Accumulator, 2> accumulators;
 };
 
 UndoInfo make_move(Position& position, const Move& move);

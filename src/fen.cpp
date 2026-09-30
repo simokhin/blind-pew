@@ -142,7 +142,8 @@ Position parse_fen(const std::string& fen) {
 
     position.zobrist_hash = compute_zobrist_hash(position);
 
-    compute_material_pst(position);
+    refresh_accumulator(position, Color::White, position.accumulators[0]);
+    refresh_accumulator(position, Color::Black, position.accumulators[1]);
 
     return position;
 }

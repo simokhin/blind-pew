@@ -127,6 +127,9 @@ void uci_loop() {
             state.stopped = false;
             state.nodes = 0;
 
+            state.soft_node_limit = 0;
+            state.hard_node_limit = 0;
+
             if (search_thread.joinable()) {
                 search_thread.join();
             }
@@ -150,6 +153,11 @@ void uci_loop() {
                     stream >> winc;
                 } else if (token == "binc") {
                     stream >> binc;
+                } else if (token == "nodes") {
+                    long nodes;
+                    stream >> nodes;
+                    state.hard_node_limit = nodes;
+                    state.soft_node_limit = nodes;
                 }
             }
 

@@ -1,4 +1,4 @@
-.PHONY: build build-windows run debug clean snapshot tuner-build
+.PHONY: build build-windows run debug clean snapshot
 
 build:
 	cmake -B build-release -DCMAKE_BUILD_TYPE=Release
@@ -31,7 +31,3 @@ snapshot:
 	n=$$(( last + 1 )); \
 	cp build-release/chess_engine bin/chess_engine_v$${n}_$(NAME); \
 	echo "Saved bin/chess_engine_v$${n}_$(NAME)"
-
-tuner-build:
-	cmake -B build-release -DCMAKE_BUILD_TYPE=Release
-	cmake --build build-release --target chess_tuner

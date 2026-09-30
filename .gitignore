@@ -7,4 +7,5 @@ compile_commands.json
 .vscode
 bin/
 tools/openings/
-tuned_params/
+tools/.venv/
+nets/

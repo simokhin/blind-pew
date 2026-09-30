@@ -153,6 +153,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         return 0;
     }
 
+    // Если поиск шел через go nodes, проверяем, не вышли ли мы за лимит
+    if (state.hard_node_limit > 0 && state.nodes >= state.hard_node_limit) {
+        state.stopped = true;
+        return 0;
+    }
+
     state.nodes++;
 
     // Проверяем, повторялась ли позиция
@@ -434,6 +440,10 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
             if (elapsed > soft_budget / 2) {
                 break;
             }
+
+            if (state.soft_node_limit > 0 && state.nodes >= state.soft_node_limit) {
+                break;
+            }
         }
 
         int best_score = -INFINITE;
@@ -546,6 +556,12 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 
     // Смотрим каждые 2048 узлов, истекло ли время
     if (state.nodes % 2048 == 0 && std::chrono::steady_clock::now() >= state.hard_deadline) {
+        state.stopped = true;
+        return 0;
+    }
+
+    // Если поиск шел через go nodes, проверяем, не вышли ли мы за лимит
+    if (state.hard_node_limit > 0 && state.nodes >= state.hard_node_limit) {
         state.stopped = true;
         return 0;
     }

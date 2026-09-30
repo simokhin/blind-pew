@@ -24,14 +24,10 @@ go movetime 1000
 ## Implemented
 
 - Bitboards
-- Simple tapered evaluation
-  - material
-  - PST
-  - mobility
-  - bishop pair, rooks on open/semi-open files, passed pawns bonus
-  - doubled/isolated pawns penalty
-  - king safety (pawn shield)
-  - parameters tuned with the Texel method
+- NNUE evaluation
+  - (768 → 32)x2 → 1, SCReLU, quantised weights
+  - incrementally updated accumulators
+  - trained with Bullet
 - Simple search
   - negamax with alpha-beta pruning
   - iterative deepening
@@ -43,17 +39,18 @@ go movetime 1000
   - principal variation search (PVS)
   - late move reduction (LMR, graduated by depth/move index)
   - static exchange evaluation (SEE)
+  - futility pruning (frontier and reverse)
+  - aspiration windows
 - Basic UCI support
   - uci / isready / quit / stop / ucinewgame
   - position (startpos, fen, moves)
-  - go (depth, movetime, wtime/btime/winc/binc, infinite)
+  - go (depth, movetime, wtime/btime/winc/binc, infinite, nodes)
   - setoption (Hash)
   - principal variation reporting per depth
-- Simple benchmark
-- Texel-method evaluation tuner (`chess_tuner`, multithreaded)
+- Simple benchmark `bench <depth>`
 
 ## Credits
 
-- [Chess Programming Wiki](https://chesspogramming.org) - reference for most of algorithms used here
-- [Texel's Tuning Method](https://chessporgramming.org/Texel%27s_Tuning_Method) by Peter Österlund, author of the [Texel](https://github.com/peterosterlund2/texel) engine - basis of the evaluation tuner
+- [Chess Programming Wiki](https://chessprogramming.org) - reference for most of algorithms used here
 - [cutechess-cli](https://github.com/cutechess/cutechess) - engine match testing
+- [Bullet](https://github.com/jw1912/bullet) - network training
