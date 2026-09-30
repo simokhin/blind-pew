@@ -8,7 +8,7 @@
 struct Position;
 
 constexpr int INPUT_SIZE = 768;
-constexpr int HIDDEN_SIZE = 32;
+constexpr int HIDDEN_SIZE = 128;
 constexpr int QA = 255;
 constexpr int QB = 64;
 constexpr int SCALE = 190;
