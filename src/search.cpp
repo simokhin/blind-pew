@@ -155,12 +155,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     state.nodes++;
 
     // Проверяем, повторялась ли позиция
-    if (is_repetition(position, state)) {
+    if (ply > 0 && is_repetition(position, state)) {
         return 0;
     }
 
     // Проверяем правило 50 ходов
-    if (position.halfmove_clock >= 100) {
+    if (ply > 0 && position.halfmove_clock >= 100) {
         return 0;
     }
 
@@ -182,7 +182,7 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         have_tt_move = true;
         tt_move = entry->best_move;
 
-        if (entry->depth >= depth) {
+        if (entry->depth >= depth && ply > 0) {
             int tt_score = decode_mate_score(entry->score, ply);
             if (entry->flag == TTFlag::Exact) {
                 return tt_score;
@@ -443,17 +443,7 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
         Move current_best_move;
 
         while (true) {
-            UndoInfo undo = make_move(position, moves[0]);
-
-            // Добавляем хэш позиции в историю
-            state.history.push_back(position.zobrist_hash);
-
-            int score = -negamax(position, depth - 1, state, -beta, -alpha, 1);
-
-            unmake_move(position, moves[0], undo);
-
-            // Удаляем хэш позиции из истории
-            state.history.pop_back();
+            int score = negamax(position, depth, state, alpha, beta, 0);
 
             if (state.stopped) {
                 break;
@@ -467,46 +457,8 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
                 window += window / 3;
             } else {
                 best_score = score;
-                current_best_move = moves[0];
-
-                state.pv_table[0][0] = moves[0];
-                for (int i = 0; i < state.pv_length[1]; i++) {
-                    state.pv_table[0][i + 1] = state.pv_table[1][i];
-                }
-                state.pv_length[0] = state.pv_length[1] + 1;
-
+                current_best_move = state.pv_table[0][0];
                 break;
-            }
-        }
-
-        if (!state.stopped) {
-            for (int i = 1; i < moves.size(); i++) {
-                const Move& m = moves[i];
-
-                UndoInfo undo = make_move(position, m);
-                state.history.push_back(position.zobrist_hash);
-
-                int score = -negamax(position, depth - 1, state, -INFINITE, -best_score, 1);
-
-                unmake_move(position, m, undo);
-
-                state.history.pop_back();
-
-                if (state.stopped) {
-                    break;
-                }
-
-                if (score > best_score) {
-                    best_score = score;
-                    current_best_move = m;
-
-                    // Обновляем principal variation table
-                    state.pv_table[0][0] = m;
-                    for (int i = 0; i < state.pv_length[1]; i++) {
-                        state.pv_table[0][i + 1] = state.pv_table[1][i];
-                    }
-                    state.pv_length[0] = state.pv_length[1] + 1;
-                }
             }
         }
 
