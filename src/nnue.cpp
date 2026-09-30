@@ -73,20 +73,21 @@ void refresh_accumulator(const Position& position, Color perspective, Accumulato
     }
 }
 
-int nnue_evaluate(const Accumulator& us, const Accumulator& them) {
+int nnue_evaluate(const Accumulator& us, const Accumulator& them, int bucket) {
     int output = 0;
 
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        output += screlu(us.hidden_values[i]) * nnue_network.output_weights[i];
+        output += screlu(us.hidden_values[i]) * nnue_network.output_weights[bucket][i];
     }
 
     for (int i = 0; i < HIDDEN_SIZE; i++) {
-        output += screlu(them.hidden_values[i]) * nnue_network.output_weights[HIDDEN_SIZE + i];
+        output +=
+            screlu(them.hidden_values[i]) * nnue_network.output_weights[bucket][HIDDEN_SIZE + i];
     }
 
     // Череда манипуляций с output, чтобы первести его в сантипешки
     output /= QA;
-    output += nnue_network.output_bias;
+    output += nnue_network.output_bias[bucket];
     output *= SCALE;
     output /= QA * QB;
 
