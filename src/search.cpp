@@ -132,6 +132,10 @@ static void print_search_info(int depth, const SearchState& state, int best_scor
 
 static void update_history_heuristic(SearchState& state, Color side, int from, int to, int bonus);
 
+static bool is_repetition(const Position& position, const SearchState& state) {
+    return std::count(state.history.begin(), state.history.end(), position.zobrist_hash) >= 2;
+}
+
 static int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
                    bool allow_null = true) {
     if (ply >= MAX_PLY) {
@@ -162,7 +166,7 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     state.nodes++;
 
     // Проверяем, повторялась ли позиция
-    if (std::count(state.history.begin(), state.history.end(), position.zobrist_hash) >= 2) {
+    if (is_repetition(position, state)) {
         return 0;
     }
 
