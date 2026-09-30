@@ -465,12 +465,6 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
         if (!state.stopped) {
             best_move = current_best_move;
 
-            // Ставим лучший найденный ход в начало списка
-            auto it = std::find(moves.begin(), moves.end(), best_move);
-            if (it != moves.end()) {
-                std::swap(*it, *moves.begin());
-            }
-
             // Печатаем информацию о поиске
             state.depth_reached = depth;
             auto search_end = std::chrono::steady_clock::now();
