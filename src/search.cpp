@@ -211,7 +211,7 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     }
 
     if (!in_check && has_non_pawn_material(position, position.side_to_move) && depth >= 3 &&
-        allow_null && static_eval >= beta) {
+        allow_null && static_eval >= beta && !pv_node) {
         constexpr int R = 2;
 
         int saved_en_passant_sq = make_null_move(position);
