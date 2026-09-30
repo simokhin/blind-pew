@@ -43,13 +43,7 @@ class ScoredMoveList {
     void add(const Move& move, int score);
     int size() const;
 
-    const ScoredMove& operator[](int index) const;
     ScoredMove& operator[](int index);
-
-    const ScoredMove* begin() const;
-    const ScoredMove* end() const;
-    ScoredMove* begin();
-    ScoredMove* end();
 
    private:
     std::array<ScoredMove, MAX_MOVES> scored_moves;
@@ -62,13 +56,8 @@ void ScoredMoveList::add(const Move& move, int score) {
 }
 int ScoredMoveList::size() const { return count; }
 
-const ScoredMove& ScoredMoveList::operator[](int index) const { return scored_moves[index]; }
 ScoredMove& ScoredMoveList::operator[](int index) { return scored_moves[index]; }
 
-const ScoredMove* ScoredMoveList::begin() const { return scored_moves.data(); };
-const ScoredMove* ScoredMoveList::end() const { return scored_moves.data() + count; };
-ScoredMove* ScoredMoveList::begin() { return scored_moves.data(); };
-ScoredMove* ScoredMoveList::end() { return scored_moves.data() + count; }
 }  // namespace
 
 static ScoredMoveList sort_moves(const MoveList& moves, const Position& position,

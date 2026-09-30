@@ -71,13 +71,13 @@ Position parse_fen(const std::string& fen) {
     int halfmove_clock = std::stoi(halfmove_clock_str);
     int fullmove_number = std::stoi(fullmove_number_str);
 
-    Position position = {
-        .side_to_move = side_to_move,
-        .castling_rights = castling_rights,
-        .en_passant_target = en_passant_target,
-        .halfmove_clock = halfmove_clock,
-        .fullmove_number = fullmove_number,
-    };
+    Position position{};
+
+    position.side_to_move = side_to_move;
+    position.castling_rights = castling_rights;
+    position.en_passant_target = en_passant_target;
+    position.halfmove_clock = halfmove_clock;
+    position.fullmove_number = fullmove_number;
 
     // Парсим расположение фигур
     std::istringstream ranks_stream(piece_placement);
