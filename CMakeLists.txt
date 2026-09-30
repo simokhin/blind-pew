@@ -21,3 +21,6 @@ add_compile_options(-Wall -Wextra -Wpedantic -mpopcnt -mavx2)
 
 add_executable(chess_engine src/main.cpp src/board.cpp src/movegen.cpp src/move.cpp src/position.cpp src/perft.cpp src/evaluate.cpp src/search.cpp src/fen.cpp src/uci.cpp src/bench.cpp src/zobrist.cpp src/tt.cpp src/bitboard.cpp src/nnue.cpp)
 target_include_directories(chess_engine PRIVATE include)
+set(NNUE_FILE ${CMAKE_SOURCE_DIR}/nets/default.nnue)
+target_compile_definitions(chess_engine PRIVATE NNUE_NET_PATH="${NNUE_FILE}")
+set_source_files_properties(src/nnue.cpp PROPERTIES OBJECT_DEPENDS ${NNUE_FILE})

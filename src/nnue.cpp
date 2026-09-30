@@ -1,6 +1,7 @@
 #include "nnue.h"
 
 #include <algorithm>
+#include <cstring>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -8,6 +9,19 @@
 #include <string>
 
 #include "position.h"
+
+asm(".section .rodata\n"
+    ".balign 64\n"
+    ".global net_start\n"
+    "net_start:\n"
+    ".incbin \"" NNUE_NET_PATH
+    "\"\n"
+    ".global net_end\n"
+    "net_end:\n"
+    ".text\n");
+
+extern "C" const unsigned char net_start[];
+extern "C" const unsigned char net_end[];
 
 Network nnue_network;
 
@@ -118,4 +132,17 @@ bool load_network(const std::string& path) {
     std::cerr << "NNUE: loaded " << path << "\n";
 
     return true;
+}
+
+bool load_embedded_network() {
+    if ((net_end - net_start) != sizeof(Network)) {
+        std::cerr << std::format(
+            "NNUE: embedded network has wrong size: expected {} bytes (HIDDEN_SIZE={}), got {}\n",
+            sizeof(Network), HIDDEN_SIZE, net_end - net_start);
+        return false;
+    } else {
+        std::memcpy(&nnue_network, net_start, sizeof(Network));
+        std::cerr << "NNUE: embedded network loaded\n";
+        return true;
+    }
 }

@@ -17,7 +17,7 @@ int main() {
 
     resize_transposition_table(16);
 
-    if (!load_network("/home/nikita/projects/chess_engine_cpp/nets/nn128_v1.bin")) {
+    if (!load_embedded_network()) {
         return 1;
     }
 

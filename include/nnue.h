@@ -26,6 +26,8 @@ struct Network {
 
 extern Network nnue_network;
 
+bool load_embedded_network();
+
 int feature_index(Color color, Piece piece, int square);
 
 void add_feature(Accumulator& acc, int index);
