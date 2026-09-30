@@ -219,7 +219,7 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         unmake_null_move(position, saved_en_passant_sq);
 
         if (!state.stopped && null_score >= beta) {
-            return null_score;
+            return null_score >= MATE_THRESHOLD ? beta : null_score;
         }
     }
 
