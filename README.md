@@ -25,7 +25,7 @@ go movetime 1000
 
 - Bitboards
 - NNUE evaluation
-  - (768 → 32)x2 → 1, SCReLU, quantised weights
+  - (768 → 128)x2 → 1, SCReLU, quantised weights
   - incrementally updated accumulators
   - trained with Bullet
 - Simple search
