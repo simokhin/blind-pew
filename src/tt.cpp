@@ -45,6 +45,12 @@ void tt_store(uint64_t hash, int depth, int score, Move best_move, TTFlag flag) 
     }
 }
 
+void tt_prefetch(uint64_t hash) {
+    int index = hash & (transposition_table.size() - 1);
+
+    __builtin_prefetch(&transposition_table[index]);
+}
+
 int encode_mate_score(int score, int ply) {
     if (score >= MATE_THRESHOLD) {
         return score + ply;

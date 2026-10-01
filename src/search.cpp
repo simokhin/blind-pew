@@ -359,15 +359,6 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         has_legal_move = true;
         move_index++;
 
-        // LMP
-        // if (depth <= 4 && !pv_node && !in_check && !is_capture && m.flag() != MoveFlag::Promotion
-        // &&
-        //     !gives_check && m != state.killers[ply][0] && m != state.killers[ply][1] &&
-        //     best > -MATE_THRESHOLD && move_index >= 3 + depth * depth) {
-        //     unmake_move(position, m, undo);
-        //     continue;
-        // }
-
         // Добавляем хэш позиции в историю
         state.history.push_back(position.zobrist_hash);
 
@@ -690,6 +681,8 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
         if (!make_legal_move(position, m, undo)) {
             continue;
         }
+
+        tt_prefetch(position.zobrist_hash);
 
         has_legal_move = true;
 

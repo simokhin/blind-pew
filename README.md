@@ -41,6 +41,7 @@ go movetime 1000
   - static exchange evaluation (SEE)
   - futility pruning (frontier and reverse)
   - aspiration windows
+  - late move pruning (LMP)
 - Basic UCI support
   - uci / isready / quit / stop / ucinewgame
   - position (startpos, fen, moves)
