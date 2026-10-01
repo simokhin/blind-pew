@@ -46,7 +46,7 @@ go movetime 1000
   - uci / isready / quit / stop / ucinewgame
   - position (startpos, fen, moves)
   - go (depth, movetime, wtime/btime/winc/binc, infinite, nodes)
-  - setoption (Hash)
+  - setoption (Hash, Threads)
   - principal variation reporting per depth
 - Simple benchmark `bench <depth>`
 - LazySMP

@@ -1,4 +1,4 @@
-.PHONY: build build-windows run debug clean snapshot
+.PHONY: build build-windows run debug clean snapshot test
 
 build:
 	cmake -B build-release -DCMAKE_BUILD_TYPE=Release
@@ -31,3 +31,7 @@ snapshot:
 	n=$$(( last + 1 )); \
 	cp build-release/chess_engine bin/chess_engine_v$${n}_$(NAME); \
 	echo "Saved bin/chess_engine_v$${n}_$(NAME)"
+
+test: build
+	cmake --build build-release --target perft_test
+	ctest --test-dir build-release --output-on-failure
