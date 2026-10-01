@@ -23,7 +23,7 @@ static_assert(sizeof(TTEntry) == 16);
 
 void resize_transposition_table(int size_mb);
 
-TTEntry* tt_probe(uint64_t hash);
+bool tt_probe(uint64_t hash, TTEntry& out);
 void tt_store(uint64_t hash, int depth, int score, Move best_move, TTFlag flag);
 
 void tt_prefetch(uint64_t hash);

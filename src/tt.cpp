@@ -21,13 +21,14 @@ void resize_transposition_table(int size_mb) {
     transposition_table.resize(entries);
 }
 
-TTEntry* tt_probe(uint64_t hash) {
+bool tt_probe(uint64_t hash, TTEntry& out) {
     size_t index = hash & (transposition_table.size() - 1);
     TTEntry& entry = transposition_table[index];
     if ((entry.hash) == hash) {
-        return &entry;
+        out = entry;
+        return true;
     } else {
-        return nullptr;
+        return false;
     }
 }
 

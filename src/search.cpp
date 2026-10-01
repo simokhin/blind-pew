@@ -244,18 +244,18 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
     bool have_tt_move = false;
     Move tt_move = {0, 0};
 
-    TTEntry* entry = tt_probe(position.zobrist_hash);
-    if (entry != nullptr) {
+    TTEntry entry;
+    if (tt_probe(position.zobrist_hash, entry)) {
         have_tt_move = true;
-        tt_move = entry->best_move;
+        tt_move = entry.best_move;
 
-        if (entry->depth >= depth && !pv_node) {
-            int tt_score = decode_mate_score(entry->score, ply);
-            if (entry->flag == TTFlag::Exact) {
+        if (entry.depth >= depth && !pv_node) {
+            int tt_score = decode_mate_score(entry.score, ply);
+            if (entry.flag == TTFlag::Exact) {
                 return tt_score;
-            } else if (entry->flag == TTFlag::LowerBound && tt_score >= beta) {
+            } else if (entry.flag == TTFlag::LowerBound && tt_score >= beta) {
                 return tt_score;
-            } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
+            } else if (entry.flag == TTFlag::UpperBound && tt_score <= alpha) {
                 return tt_score;
             }
         }
@@ -602,14 +602,14 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
 
     // Ищем запись в таблице транспозиций
     if (state.use_tt) {
-        TTEntry* entry = tt_probe(position.zobrist_hash);
-        if (entry != nullptr) {
-            int tt_score = decode_mate_score(entry->score, ply);
-            if (entry->flag == TTFlag::Exact) {
+        TTEntry entry;
+        if (tt_probe(position.zobrist_hash, entry)) {
+            int tt_score = decode_mate_score(entry.score, ply);
+            if (entry.flag == TTFlag::Exact) {
                 return tt_score;
-            } else if (entry->flag == TTFlag::LowerBound && tt_score >= beta) {
+            } else if (entry.flag == TTFlag::LowerBound && tt_score >= beta) {
                 return tt_score;
-            } else if (entry->flag == TTFlag::UpperBound && tt_score <= alpha) {
+            } else if (entry.flag == TTFlag::UpperBound && tt_score <= alpha) {
                 return tt_score;
             }
         }
