@@ -49,6 +49,7 @@ go movetime 1000
   - setoption (Hash)
   - principal variation reporting per depth
 - Simple benchmark `bench <depth>`
+- LazySMP
 
 ## Credits
 
