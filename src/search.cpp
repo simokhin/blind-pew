@@ -233,6 +233,9 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 
     int move_index = 0;  // Нужен для LMR
 
+    Move quiets_tried[64];
+    int quiets_count = 0;
+
     for (int i = 0; i < scored_moves.size(); i++) {
         int best_idx = i;
 
@@ -358,6 +361,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
                 update_history_heuristic(state, position.side_to_move, m.from(), m.to(),
                                          depth * depth);
 
+                // Штрафуем тихие ходы, которые пробовали раньше и которые не вызывали отсечение
+                for (int q = 0; q < quiets_count; q++) {
+                    update_history_heuristic(state, position.side_to_move, quiets_tried[q].from(),
+                                             quiets_tried[q].to(), -(depth * depth));
+                }
+
                 // Меняем ходы местами
                 if (m != state.killers[ply][0]) {
                     state.killers[ply][1] = state.killers[ply][0];
@@ -366,6 +375,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
             }
 
             break;
+        }
+
+        // Запоминаем тихий ход, который не вызвал отсечение
+        if (!is_capture && quiets_count < 64) {
+            quiets_tried[quiets_count] = m;
+            quiets_count++;
         }
     }
 
