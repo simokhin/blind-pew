@@ -33,6 +33,8 @@ struct SearchState {
 
     long soft_node_limit = 0;
     long hard_node_limit = 0;
+
+    int thread_id = 0;
 };
 
 // Инициализирует таблицы, нужные для LMR
@@ -41,3 +43,5 @@ void init_lmr_table();
 Move find_best_move(Position& position, int max_depth, SearchState& state);
 
 int quiescence(Position& position, int alpha, int beta, SearchState& state, int ply);
+
+void prepare_helper_state(SearchState& helper, const SearchState& main);

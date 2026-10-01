@@ -21,8 +21,22 @@ void uci_loop() {
 
     std::vector<uint64_t> position_history;
 
-    SearchState state;
+    std::vector<SearchState> states(1);
+    std::vector<SearchState> helper_states;
+
+    int thread_count = 1;
+
+    SearchState& state = states[0];
+
     std::thread search_thread;
+    std::vector<std::thread> helper_threads;
+
+    auto join_helpers = [&helper_threads]() {
+        for (std::thread& t : helper_threads) {
+            t.join();
+        }
+        helper_threads.clear();
+    };
 
     while (std::getline(std::cin, line)) {
         std::istringstream stream(line);
@@ -37,6 +51,7 @@ void uci_loop() {
             std::cout << "id name " << ENGINE_NAME << "\n";
             std::cout << "id author " << ENGINE_AUTHOR << "\n";
             std::cout << "option name Hash type spin default 16 min 1 max 65536\n";
+            std::cout << "option name Threads type spin default 1 min 1 max 64\n";
             std::cout << "uciok\n";
         }
 
@@ -134,6 +149,9 @@ void uci_loop() {
                 search_thread.join();
             }
 
+            // Дожидаемся завершения работы каждого потока перед тем, как начать новый поиск
+            join_helpers();
+
             while (stream >> token) {
                 if (token == "depth") {
                     stream >> max_depth;
@@ -179,8 +197,28 @@ void uci_loop() {
 
             state.history = position_history;
 
-            search_thread = std::thread([&position, &state, max_depth]() {
-                Move best_move = find_best_move(position, max_depth, state);
+            for (size_t i = 0; i < helper_states.size(); i++) {
+                // Создаем своё состояние поиска для каждого потока
+                prepare_helper_state(helper_states[i], state);
+
+                helper_states[i].thread_id = static_cast<int>(i) + 1;
+
+                // Даём каждому потоку копию позиции и ссылку на его state
+                helper_threads.emplace_back(
+                    [local_position = position, &helper = helper_states[i], max_depth]() mutable {
+                        find_best_move(local_position, max_depth, helper);
+                    });
+            }
+
+            search_thread = std::thread([&position, &state, max_depth, &helper_states]() {
+                Position local_position = position;
+
+                Move best_move = find_best_move(local_position, max_depth, state);
+
+                for (SearchState& s : helper_states) {
+                    s.stopped = true;
+                }
+
                 std::cout << "bestmove " + move_to_uci(best_move) + "\n";
                 std::cout.flush();
             });
@@ -195,6 +233,7 @@ void uci_loop() {
         if (command == "setoption") {
             std::string token;
 
+            join_helpers();
             while (stream >> token) {
                 if (token == "Hash") {
                     // Сбрасываем слово "value"
@@ -204,6 +243,11 @@ void uci_loop() {
                     stream >> size_mb;
 
                     resize_transposition_table(size_mb);
+                } else if (token == "Threads") {
+                    stream >> token;
+
+                    stream >> thread_count;
+                    helper_states = std::vector<SearchState>(thread_count - 1);
                 }
             }
         }
@@ -213,13 +257,21 @@ void uci_loop() {
             if (search_thread.joinable()) {
                 search_thread.join();
             }
+            join_helpers();
+
+            for (SearchState& s : helper_states) {
+                s.stopped = true;
+            }
         }
 
         if (command == "ucinewgame") {
             state.stopped = true;
+
             if (search_thread.joinable()) {
                 search_thread.join();
             }
+            join_helpers();
+
             state.nodes = 0;
             state.stopped = false;
             state.depth_reached = 0;
@@ -236,4 +288,5 @@ void uci_loop() {
     if (search_thread.joinable()) {
         search_thread.join();
     }
+    join_helpers();
 }

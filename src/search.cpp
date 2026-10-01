@@ -489,7 +489,10 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 
 Move find_best_move(Position& position, int max_depth, SearchState& state) {
     // От количества вызовов функции за игру, зависит возраст записей в таблице
-    tt_new_search();
+    // state.thread_id == 0 - значит, что задействован только 1 поток
+    if (state.thread_id == 0) {
+        tt_new_search();
+    }
 
     auto search_start = std::chrono::steady_clock::now();
 
@@ -561,7 +564,9 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
             double elapsed_seconds =
                 std::chrono::duration<double>(search_end - search_start).count();
 
-            print_search_info(depth, state, best_score, elapsed_seconds);
+            if (state.thread_id == 0) {
+                print_search_info(depth, state, best_score, elapsed_seconds);
+            }
 
             prev_score = best_score;
         }
@@ -731,6 +736,17 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
     }
 
     return best;
+}
+
+void prepare_helper_state(SearchState& helper, const SearchState& main) {
+    helper.hard_deadline = main.hard_deadline;
+    helper.soft_deadline = main.soft_deadline;
+    helper.history = main.history;
+    helper.use_tt = main.use_tt;
+    helper.nodes = 0;
+    helper.stopped = false;
+    helper.soft_node_limit = 0;
+    helper.hard_node_limit = 0;
 }
 
 // Печатает информацию о поиске в stdout
