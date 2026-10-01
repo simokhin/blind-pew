@@ -17,17 +17,15 @@
 void uci_loop() {
     std::string line;
 
+    // Партия
     Position position = parse_fen(START_FEN);
-
     std::vector<uint64_t> position_history;
 
-    std::vector<SearchState> states(1);
+    // Состояние поиска
     std::vector<SearchState> helper_states;
+    SearchState state;
 
-    int thread_count = 1;
-
-    SearchState& state = states[0];
-
+    // Потоки поиска
     std::thread search_thread;
     std::vector<std::thread> helper_threads;
 
@@ -127,6 +125,12 @@ void uci_loop() {
         }
 
         if (command == "go") {
+            if (search_thread.joinable()) {
+                search_thread.join();
+            }
+            // Дожидаемся завершения работы каждого потока перед тем, как начать новый поиск
+            join_helpers();
+
             // Значения по умолчанию
             int max_depth = 64;
             state.hard_deadline = std::chrono::steady_clock::time_point::max();
@@ -145,12 +149,7 @@ void uci_loop() {
             state.soft_node_limit = 0;
             state.hard_node_limit = 0;
 
-            if (search_thread.joinable()) {
-                search_thread.join();
-            }
-
-            // Дожидаемся завершения работы каждого потока перед тем, как начать новый поиск
-            join_helpers();
+            state.helpers = &helper_states;
 
             while (stream >> token) {
                 if (token == "depth") {
@@ -234,6 +233,9 @@ void uci_loop() {
             std::string token;
 
             join_helpers();
+            if (search_thread.joinable()) {
+                search_thread.join();
+            };
             while (stream >> token) {
                 if (token == "Hash") {
                     // Сбрасываем слово "value"
@@ -246,8 +248,11 @@ void uci_loop() {
                 } else if (token == "Threads") {
                     stream >> token;
 
-                    stream >> thread_count;
-                    helper_states = std::vector<SearchState>(thread_count - 1);
+                    int threads;
+
+                    stream >> threads;
+
+                    helper_states = std::vector<SearchState>(threads - 1);
                 }
             }
         }

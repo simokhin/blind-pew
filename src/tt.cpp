@@ -12,7 +12,7 @@ struct TTSlot {
 
 static std::vector<TTSlot> transposition_table;
 
-static uint8_t current_age = 0;
+static std::atomic<uint8_t> current_age = 0;
 
 void tt_new_search() { current_age++; }
 

@@ -9,7 +9,7 @@
 #include "position.h"
 
 struct SearchState {
-    long nodes = 0;
+    std::atomic<long> nodes = 0;
 
     // Time control
     std::chrono::steady_clock::time_point hard_deadline;
@@ -35,6 +35,9 @@ struct SearchState {
     long hard_node_limit = 0;
 
     int thread_id = 0;
+
+    // Указатель на вектор помощников (потоков), если Threads > 1
+    const std::vector<SearchState>* helpers = nullptr;
 };
 
 // Инициализирует таблицы, нужные для LMR

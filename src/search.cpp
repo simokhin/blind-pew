@@ -219,7 +219,8 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         return 0;
     }
 
-    state.nodes++;
+    // state.nodes++
+    state.nodes.store(state.nodes.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 
     // Проверяем, повторялась ли позиция
     if (ply > 0 && is_repetition(position, state)) {
@@ -513,6 +514,11 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
 
         int window = ASPIRATION_WINDOW;
 
+        int search_depth = depth;
+        if (state.thread_id % 2 == 1) {
+            search_depth++;
+        }
+
         if (depth >= 4) {
             alpha = std::max(-INFINITE, prev_score - ASPIRATION_WINDOW);
             beta = std::min(INFINITE, prev_score + ASPIRATION_WINDOW);
@@ -536,7 +542,7 @@ Move find_best_move(Position& position, int max_depth, SearchState& state) {
         Move current_best_move;
 
         while (true) {
-            int score = negamax(position, depth, state, alpha, beta, 0);
+            int score = negamax(position, search_depth, state, alpha, beta, 0);
 
             if (state.stopped) {
                 break;
@@ -599,7 +605,8 @@ int quiescence(Position& position, int alpha, int beta, SearchState& state, int 
         return 0;
     }
 
-    state.nodes++;
+    // state.nodes++
+    state.nodes.store(state.nodes.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 
     bool in_check = is_in_check(position);
 
@@ -752,11 +759,20 @@ void prepare_helper_state(SearchState& helper, const SearchState& main) {
 // Печатает информацию о поиске в stdout
 void print_search_info(int depth, const SearchState& state, int best_score,
                        double elapsed_seconds) {
+    // Общее количество нод от всех потоков
+    long total_nodes = state.nodes;
+
+    if (state.helpers != nullptr) {
+        for (const SearchState& h : *state.helpers) {
+            total_nodes += h.nodes;
+        }
+    }
+
     // Вычисляем NPS
-    long nps = (elapsed_seconds > 0) ? static_cast<long>(state.nodes / elapsed_seconds) : 0;
+    long nps = (elapsed_seconds > 0) ? static_cast<long>(total_nodes / elapsed_seconds) : 0;
 
     // Печатаем вывод
-    std::cout << "info depth " << depth << " nodes " << state.nodes << " time "
+    std::cout << "info depth " << depth << " nodes " << total_nodes << " time "
               << static_cast<long>(elapsed_seconds * 1000) << " nps " << nps;
 
     // Печатаем, сколько ходов до мата либо обычную оценку позиции
