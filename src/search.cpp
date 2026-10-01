@@ -334,6 +334,13 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
             }
         }
 
+        // LMP
+        if (depth <= 4 && !pv_node && !in_check && !is_capture && m.flag() != MoveFlag::Promotion &&
+            !predicted && m != state.killers[ply][0] && m != state.killers[ply][1] &&
+            best > -MATE_THRESHOLD && move_index >= 2 + depth * depth) {
+            continue;
+        }
+
         if (!make_legal_move(position, m, undo)) {
             continue;
         }
