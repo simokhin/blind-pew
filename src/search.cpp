@@ -125,6 +125,73 @@ static bool is_repetition(const Position& position, const SearchState& state) {
     return std::count(state.history.begin(), state.history.end(), position.zobrist_hash) >= 2;
 }
 
+static bool move_gives_check(const Position& position, const Move& m) {
+    Color us = position.side_to_move;
+    Color them = opposite_color(position.side_to_move);
+    int king_square = king_square_of(position, them);
+
+    int from = m.from();
+    int to = m.to();
+    Piece piece = position.board[from];
+
+    Bitboard occ_after =
+        ((position.by_color[0] | position.by_color[1]) & ~square_bb(from)) | square_bb(to);
+
+    if (m.flag() != MoveFlag::Normal) {
+        return true;
+    }
+
+    PieceType type = piece_type_of(piece);
+
+    // Конь даёт шах королю
+    if (type == PieceType::Knight && (knight_attacks[to] & square_bb(king_square)) != 0) {
+        return true;
+    }
+
+    // Пешка даёт шах королю
+    if (type == PieceType::Pawn &&
+        (pawn_attacks[static_cast<int>(us)][to] & square_bb(king_square)) != 0) {
+        return true;
+    }
+
+    // Слон даёт шах королю
+    if (type == PieceType::Bishop &&
+        (bishop_attacks_from(to, occ_after) & square_bb(king_square)) != 0) {
+        return true;
+    }
+
+    // Ладья даёт шах королю
+    if (type == PieceType::Rook &&
+        (rook_attacks_from(to, occ_after) & square_bb(king_square)) != 0) {
+        return true;
+    }
+
+    // Ферзь даёт шах королю
+    if (type == PieceType::Queen &&
+        ((rook_attacks_from(to, occ_after) | bishop_attacks_from(to, occ_after)) &
+         square_bb(king_square)) != 0) {
+        return true;
+    }
+
+    Bitboard rooks_and_queen = (position.by_piece_type[static_cast<int>(PieceType::Rook)] |
+                                position.by_piece_type[static_cast<int>(PieceType::Queen)]) &
+                               position.by_color[static_cast<int>(us)] & ~square_bb(from);
+
+    if ((rook_attacks_from(king_square, occ_after) & rooks_and_queen) != 0) {
+        return true;
+    }
+
+    Bitboard bishops_and_queen = (position.by_piece_type[static_cast<int>(PieceType::Bishop)] |
+                                  position.by_piece_type[static_cast<int>(PieceType::Queen)]) &
+                                 position.by_color[static_cast<int>(us)] & ~square_bb(from);
+
+    if ((bishop_attacks_from(king_square, occ_after) & bishops_and_queen) != 0) {
+        return true;
+    }
+
+    return false;
+}
+
 static int negamax(Position& position, int depth, SearchState& state, int alpha, int beta, int ply,
                    bool allow_null = true) {
     if (ply >= MAX_PLY) {
@@ -256,6 +323,17 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
 
         bool is_capture = position.board[m.to()] != Piece::None || m.flag() == MoveFlag::EnPassant;
 
+        bool predicted = move_gives_check(position, m);
+
+        // Futility pruning
+        if (depth == 1 && !in_check && has_legal_move && !is_capture && !predicted &&
+            m.flag() != MoveFlag::Promotion && alpha > -MATE_THRESHOLD && beta < MATE_THRESHOLD) {
+            constexpr int FUTILITY_MARGIN = 350;
+            if (static_eval + FUTILITY_MARGIN <= alpha) {
+                continue;
+            }
+        }
+
         if (!make_legal_move(position, m, undo)) {
             continue;
         }
@@ -274,15 +352,14 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         has_legal_move = true;
         move_index++;
 
-        // Futility pruning
-        if (depth == 1 && !in_check && !is_first_move && !is_capture && !gives_check &&
-            m.flag() != MoveFlag::Promotion && alpha > -MATE_THRESHOLD && beta < MATE_THRESHOLD) {
-            constexpr int FUTILITY_MARGIN = 350;
-            if (static_eval + FUTILITY_MARGIN <= alpha) {
-                unmake_move(position, m, undo);
-                continue;
-            }
-        }
+        // LMP
+        // if (depth <= 4 && !pv_node && !in_check && !is_capture && m.flag() != MoveFlag::Promotion
+        // &&
+        //     !gives_check && m != state.killers[ply][0] && m != state.killers[ply][1] &&
+        //     best > -MATE_THRESHOLD && move_index >= 3 + depth * depth) {
+        //     unmake_move(position, m, undo);
+        //     continue;
+        // }
 
         // Добавляем хэш позиции в историю
         state.history.push_back(position.zobrist_hash);
