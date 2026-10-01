@@ -249,7 +249,7 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         have_tt_move = true;
         tt_move = entry->best_move;
 
-        if (entry->depth >= depth && ply > 0) {
+        if (entry->depth >= depth && !pv_node) {
             int tt_score = decode_mate_score(entry->score, ply);
             if (entry->flag == TTFlag::Exact) {
                 return tt_score;
