@@ -29,3 +29,9 @@ add_executable(eval_converter tools/eval_converter.cpp src/board.cpp src/positio
 target_include_directories(eval_converter PRIVATE include)
 target_include_directories(eval_converter PRIVATE tools/third_party)
 target_compile_definitions(eval_converter PRIVATE NNUE_NET_PATH="${NNUE_FILE}")
+
+add_executable(perft_test tests/perft_test.cpp src/board.cpp src/position.cpp src/fen.cpp src/movegen.cpp src/move.cpp src/bitboard.cpp src/zobrist.cpp src/perft.cpp src/nnue.cpp)
+target_include_directories(perft_test PRIVATE include)
+target_compile_definitions(perft_test PRIVATE NNUE_NET_PATH="${NNUE_FILE}")
+enable_testing()
+add_test(NAME perft_startpos COMMAND perft_test)
