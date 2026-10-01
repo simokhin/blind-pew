@@ -262,6 +262,12 @@ static int negamax(Position& position, int depth, SearchState& state, int alpha,
         }
     }
 
+    // Internal iterative reduction
+    // Нет хода из таблицы - ищем на глубину меньше
+    if (ply > 0 && depth >= 4 && !have_tt_move) {
+        depth--;
+    }
+
     bool in_check = is_in_check(position);
 
     int static_eval = INFINITE;

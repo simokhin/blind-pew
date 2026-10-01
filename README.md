@@ -42,6 +42,7 @@ go movetime 1000
   - futility pruning (frontier and reverse)
   - aspiration windows
   - late move pruning (LMP)
+  - internal iterative reduction (IIR)
 - Basic UCI support
   - uci / isready / quit / stop / ucinewgame
   - position (startpos, fen, moves)
