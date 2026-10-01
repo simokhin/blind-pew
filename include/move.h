@@ -26,6 +26,8 @@ class Move {
     MoveFlag flag() const;
     PromotionPiece promotion() const;
     bool operator==(const Move& other) const;
+    uint16_t raw() const;
+    static Move from_raw(uint16_t raw);
 
    private:
     uint16_t data;

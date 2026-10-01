@@ -24,6 +24,14 @@ PromotionPiece Move::promotion() const {
 
 bool Move::operator==(const Move& other) const { return data == other.data; }
 
+uint16_t Move::raw() const { return Move::data; }
+
+Move Move::from_raw(uint16_t raw) {
+    Move m;
+    m.data = raw;
+    return m;
+}
+
 // Получить флаг, характеризующий ход
 MoveFlag Move::flag() const {
     int flag = (data >> 14) & 0x3;
