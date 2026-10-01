@@ -4,7 +4,7 @@
 
 #include "move.h"
 
-enum class TTFlag {
+enum class TTFlag : uint8_t {
     Exact,
     LowerBound,
     UpperBound,
@@ -12,12 +12,14 @@ enum class TTFlag {
 
 struct TTEntry {
     uint64_t hash;
-    int depth;
-    int score;
+    int8_t depth;
+    int16_t score;
     Move best_move;
     TTFlag flag;
     uint8_t age = 0;
 };
+
+static_assert(sizeof(TTEntry) == 16);
 
 void resize_transposition_table(int size_mb);
 

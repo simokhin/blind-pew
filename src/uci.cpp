@@ -36,7 +36,7 @@ void uci_loop() {
         if (command == "uci") {
             std::cout << "id name " << ENGINE_NAME << "\n";
             std::cout << "id author " << ENGINE_AUTHOR << "\n";
-            std::cout << "option name Hash type spin default 16 min 1 max 1024\n";
+            std::cout << "option name Hash type spin default 16 min 1 max 65536\n";
             std::cout << "uciok\n";
         }
 

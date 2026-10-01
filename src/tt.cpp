@@ -22,7 +22,7 @@ void resize_transposition_table(int size_mb) {
 }
 
 TTEntry* tt_probe(uint64_t hash) {
-    int index = hash & (transposition_table.size() - 1);
+    size_t index = hash & (transposition_table.size() - 1);
     TTEntry& entry = transposition_table[index];
     if ((entry.hash) == hash) {
         return &entry;
@@ -32,7 +32,7 @@ TTEntry* tt_probe(uint64_t hash) {
 }
 
 void tt_store(uint64_t hash, int depth, int score, Move best_move, TTFlag flag) {
-    int index = hash & (transposition_table.size() - 1);
+    size_t index = hash & (transposition_table.size() - 1);
     TTEntry& entry = transposition_table[index];
 
     if (depth >= entry.depth || entry.age != current_age) {
@@ -46,7 +46,7 @@ void tt_store(uint64_t hash, int depth, int score, Move best_move, TTFlag flag) 
 }
 
 void tt_prefetch(uint64_t hash) {
-    int index = hash & (transposition_table.size() - 1);
+    size_t index = hash & (transposition_table.size() - 1);
 
     __builtin_prefetch(&transposition_table[index]);
 }
