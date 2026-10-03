@@ -3,74 +3,11 @@
 #include "magic_constants.h"
 #include "position.h"
 
+namespace {
 Bitboard rook_attacks_table[64][4096];
 Bitboard bishop_attacks_table[64][512];
-Bitboard rook_masks[64];
-Bitboard bishop_masks[64];
 
-Bitboard rook_mask(int square) {
-    Bitboard mask = 0;
-
-    int rank = rank_of(square);
-    int file = file_of(square);
-
-    for (const Offset& d : rook_directions) {
-        int new_rank = rank + d.dr;
-        int new_file = file + d.df;
-
-        while (true) {
-            if (is_valid_square(new_rank, new_file)) {
-                int next_rank = new_rank + d.dr;
-                int next_file = new_file + d.df;
-
-                if (!is_valid_square(next_rank, next_file)) {
-                    break;
-                }
-
-                mask |= square_bb(square_of(new_rank, new_file));
-                new_rank += d.dr;
-                new_file += d.df;
-            } else {
-                break;
-            }
-        }
-    }
-
-    return mask;
-}
-
-Bitboard bishop_mask(int square) {
-    Bitboard mask = 0;
-
-    int rank = rank_of(square);
-    int file = file_of(square);
-
-    for (const Offset& d : bishop_directions) {
-        int new_rank = rank + d.dr;
-        int new_file = file + d.df;
-
-        while (true) {
-            if (is_valid_square(new_rank, new_file)) {
-                int next_rank = new_rank + d.dr;
-                int next_file = new_file + d.df;
-
-                if (!is_valid_square(next_rank, next_file)) {
-                    break;
-                }
-
-                mask |= square_bb(square_of(new_rank, new_file));
-                new_rank += d.dr;
-                new_file += d.df;
-            } else {
-                break;
-            }
-        }
-    }
-
-    return mask;
-}
-
-Bitboard rook_attacks_otf(int square, Bitboard occupancy) {
+constexpr Bitboard rook_attacks_otf(int square, Bitboard occupancy) {
     Bitboard attacks = 0;
 
     int rank = rank_of(square);
@@ -99,7 +36,7 @@ Bitboard rook_attacks_otf(int square, Bitboard occupancy) {
     return attacks;
 }
 
-Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
+constexpr Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
     Bitboard attacks = 0;
 
     int rank = rank_of(square);
@@ -128,7 +65,7 @@ Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
     return attacks;
 }
 
-Bitboard set_occupancy(int index, Bitboard mask) {
+constexpr Bitboard set_occupancy(int index, Bitboard mask) {
     Bitboard occupancy = 0;
     int bit_index = 0;
 
@@ -143,6 +80,7 @@ Bitboard set_occupancy(int index, Bitboard mask) {
 
     return occupancy;
 }
+}  // namespace
 
 Bitboard random_sparse_u64(std::mt19937_64& rng) { return rng() & rng() & rng(); }
 
@@ -171,7 +109,6 @@ Bitboard find_bishop_magic(int square, std::mt19937_64& rng) {
 void init_rook_magics() {
     for (int square = 0; square < 64; square++) {
         Bitboard mask = rook_mask(square);
-        rook_masks[square] = mask;
 
         int bits = rook_relevant_bits[square];
         int count =
@@ -193,7 +130,6 @@ void init_rook_magics() {
 void init_bishop_magics() {
     for (int square = 0; square < 64; square++) {
         Bitboard mask = bishop_mask(square);
-        bishop_masks[square] = mask;
 
         int bits = bishop_relevant_bits[square];
         int count =

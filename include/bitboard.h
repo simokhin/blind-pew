@@ -75,6 +75,88 @@ constexpr std::array<std::array<Bitboard, 64>, 2> make_pawn_attacks() {
     return result;
 }
 
+constexpr Bitboard rook_mask(int square) {
+    Bitboard mask = 0;
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    for (const Offset& d : rook_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                int next_rank = new_rank + d.dr;
+                int next_file = new_file + d.df;
+
+                if (!is_valid_square(next_rank, next_file)) {
+                    break;
+                }
+
+                mask |= square_bb(square_of(new_rank, new_file));
+                new_rank += d.dr;
+                new_file += d.df;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return mask;
+}
+
+constexpr Bitboard bishop_mask(int square) {
+    Bitboard mask = 0;
+
+    int rank = rank_of(square);
+    int file = file_of(square);
+
+    for (const Offset& d : bishop_directions) {
+        int new_rank = rank + d.dr;
+        int new_file = file + d.df;
+
+        while (true) {
+            if (is_valid_square(new_rank, new_file)) {
+                int next_rank = new_rank + d.dr;
+                int next_file = new_file + d.df;
+
+                if (!is_valid_square(next_rank, next_file)) {
+                    break;
+                }
+
+                mask |= square_bb(square_of(new_rank, new_file));
+                new_rank += d.dr;
+                new_file += d.df;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return mask;
+}
+
+constexpr std::array<Bitboard, 64> make_rook_masks() {
+    std::array<Bitboard, 64> result{};
+
+    for (int square = 0; square < 64; square++) {
+        result[square] = rook_mask(square);
+    }
+
+    return result;
+}
+
+constexpr std::array<Bitboard, 64> make_bishop_masks() {
+    std::array<Bitboard, 64> result{};
+
+    for (int square = 0; square < 64; square++) {
+        result[square] = bishop_mask(square);
+    }
+
+    return result;
+}
+
 inline constexpr std::array<Bitboard, 64> knight_attacks = make_knight_attacks();
 static_assert(knight_attacks[0] == (square_bb(10) | square_bb(17)),
               "knight_attacks[A1] must be C2 and B3");
@@ -89,17 +171,11 @@ static_assert(pawn_attacks[static_cast<int>(Color::White)][8] == square_bb(17),
 static_assert(pawn_attacks[static_cast<int>(Color::Black)][55] == square_bb(46),
               "black pawn on H7 must attack only G6");
 
-extern Bitboard rook_attacks_table[64][4096];
-extern Bitboard bishop_attacks_table[64][512];
-extern Bitboard rook_masks[64];
-extern Bitboard bishop_masks[64];
+inline constexpr std::array<Bitboard, 64> rook_masks = make_rook_masks();
+static_assert(std::popcount(rook_masks[0]) == 12, "rook mask on A1 must have 12 squares");
 
-Bitboard rook_mask(int square);
-Bitboard bishop_mask(int square);
-Bitboard rook_attacks_otf(int square, Bitboard occupancy);
-Bitboard bishop_attacks_otf(int square, Bitboard occupancy);
-
-Bitboard set_occupancy(int index, Bitboard mask);
+inline constexpr std::array<Bitboard, 64> bishop_masks = make_bishop_masks();
+static_assert(std::popcount(bishop_masks[0]) == 6, "bishop mask on A1 must have 6 squares");
 
 Bitboard random_sparse_u64(std::mt19937_64& rng);
 
