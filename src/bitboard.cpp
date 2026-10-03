@@ -4,9 +4,13 @@
 #include "position.h"
 
 namespace {
+// Таблицы атак для магических битбордов: `[клетка][магический индекс]`.
+// Второй размер - максимум 2^bits по всем клекткам (12 бит у ладьи, 9 у слона).
 Bitboard rook_attacks_table[64][4096];
 Bitboard bishop_attacks_table[64][512];
 
+// Считает атаки ладьи обходом лучей до первой занятой клетки включительно.
+// Медленно, поэтому используется только при заполнении таблиц.
 constexpr Bitboard rook_attacks_otf(int square, Bitboard occupancy) {
     Bitboard attacks = 0;
 
@@ -36,6 +40,8 @@ constexpr Bitboard rook_attacks_otf(int square, Bitboard occupancy) {
     return attacks;
 }
 
+// Считает атаки слона обходом лучей до первой занятой клетки включительно.
+// Медленно, поэтому используется только при заполнении таблиц.
 constexpr Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
     Bitboard attacks = 0;
 
@@ -65,6 +71,9 @@ constexpr Bitboard bishop_attacks_otf(int square, Bitboard occupancy) {
     return attacks;
 }
 
+// Раскладывает биты числа `index` по установленным битам `mask`: i-й установленный бит маски
+// берётся равным i-му биту `index`. Перебор `index` от 0 до 2^popcount(mask) - 1 даёт все возможные
+// подмножества маски.
 constexpr Bitboard set_occupancy(int index, Bitboard mask) {
     Bitboard occupancy = 0;
     int bit_index = 0;
@@ -114,12 +123,12 @@ void init_rook_magics() {
         int count =
             1 << bits;  // 2^bits - количество возможных комбинаций занятости для этой клетки
         for (int index = 0; index < count; index++) {
-            // Занятость для этой комбинации
             Bitboard occupancy = set_occupancy(index, mask);
 
-            // Вычисляем атаку ладьи, исходя из вычисленной занятости
             Bitboard attack = rook_attacks_otf(square, occupancy);
 
+            // Разные занятости могут дать одинаковый индекс: это допустимо, потому что магическое
+            // число подобрано так, что при совпадении индекса совпадают и атаки.
             int magic_index = (occupancy * rook_magics[square]) >> (64 - bits);
 
             rook_attacks_table[square][magic_index] = attack;
@@ -135,12 +144,12 @@ void init_bishop_magics() {
         int count =
             1 << bits;  // 2^bits - количество возможных комбинаций занятости для этой клетки
         for (int index = 0; index < count; index++) {
-            // Занятость для этой комбинации
             Bitboard occupancy = set_occupancy(index, mask);
 
-            // Вычисляем атаку ладьи, исходя из вычисленной занятости
             Bitboard attack = bishop_attacks_otf(square, occupancy);
 
+            // Разные занятости могут дать одинаковый индекс: это допустимо, потому что магическое
+            // число подобрано так, что при совпадении индекса совпадают и атаки.
             int magic_index = (occupancy * bishop_magics[square]) >> (64 - bits);
 
             bishop_attacks_table[square][magic_index] = attack;
@@ -159,6 +168,8 @@ bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
         Bitboard occupancy = set_occupancy(index, mask);
         Bitboard attack = attacks_fn(square, occupancy);
 
+        // Разные занятости могут дать одинаковый индекс: это допустимо, потому что магическое
+        // число подобрано так, что при совпадении индекса совпадают и атаки.
         int magic_index = (occupancy * magic) >> (64 - bits);
 
         if (used[magic_index] && table[magic_index] != attack) {
@@ -180,6 +191,8 @@ Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) 
     attackers |= king_attacks[square] & position.by_piece_type[static_cast<int>(PieceType::King)] &
                  occupancy;
 
+    // Пешка цвета X атакует `square`, если стоит там, куда попала бы пешка противоположного цвета,
+    // стоящая до `square`. Поэтому для поиска белых пешек берётся таблица чёрных и наоборот.
     attackers |= pawn_attacks[static_cast<int>(Color::White)][square] &
                  position.by_color[static_cast<int>(Color::Black)] &
                  position.by_piece_type[static_cast<int>(PieceType::Pawn)] & occupancy;
@@ -207,6 +220,8 @@ Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) 
 
 Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, Color side,
                                  PieceType& out_type) {
+    // Перебор идёт по значению `PieceType`: порядок от пешки к королю совпадает с порядком
+    // возрастания ценности, на который опирается функция.
     for (int type = 0; type <= static_cast<int>(PieceType::King); type++) {
         Bitboard candidates =
             attackers & position.by_color[static_cast<int>(side)] & position.by_piece_type[type];
@@ -220,6 +235,9 @@ Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, C
 }
 
 Bitboard pawn_attacks_bulk(Bitboard pawns, Color color) {
+    // Белые пешки: сдвиг на 7 - это атака вперёд-влево, на 9 - вперёд-вправо; у черных наоборот
+    // (сдвиг вниз). Маски `FILE_A`/`FILE_H` убирают пешки, которые при сдвиге перешли бы на
+    // противоположный край доски.
     if (color == Color::White) {
         return ((pawns & ~FILE_A) << 7) | ((pawns & ~FILE_H) << 9);
     } else {
@@ -230,6 +248,9 @@ Bitboard pawn_attacks_bulk(Bitboard pawns, Color color) {
 Bitboard rook_attacks_from(int square, Bitboard occupancy) {
     Bitboard relevant = occupancy & rook_masks[square];
     int bits = rook_relevant_bits[square];
+
+    // Магический индекс: произведение значимой занятости на магическое число, затем сдвиг оставляет
+    // в старших `bits` битах номер, уникальный для атак этой раскладки.
     int magic_index = (relevant * rook_magics[square]) >> (64 - bits);
     return rook_attacks_table[square][magic_index];
 }
@@ -237,6 +258,9 @@ Bitboard rook_attacks_from(int square, Bitboard occupancy) {
 Bitboard bishop_attacks_from(int square, Bitboard occupancy) {
     Bitboard relevant = occupancy & bishop_masks[square];
     int bits = bishop_relevant_bits[square];
+
+    // Магический индекс: произведение значимой занятости на магическое число, затем сдвиг оставляет
+    // в старших `bits` битах номер, уникальный для атак этой раскладки.
     int magic_index = (relevant * bishop_magics[square]) >> (64 - bits);
     return bishop_attacks_table[square][magic_index];
 }
