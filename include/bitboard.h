@@ -17,6 +17,35 @@ constexpr Bitboard FILE_H = 0x8080808080808080ULL;
 /// Возвращает битборд с одним установленным битом на клетке `square` (0..63)
 constexpr Bitboard square_bb(int square) { return 1ULL << square; }
 
+struct Offset {
+    int dr;
+    int df;
+};
+
+inline constexpr std::array<Offset, 8> knight_offsets = {
+    Offset{1, 2}, Offset{1, -2}, Offset{-1, 2}, Offset{-1, -2},
+    Offset{2, 1}, Offset{2, -1}, Offset{-2, 1}, Offset{-2, -1},
+};
+
+inline constexpr std::array<Offset, 8> king_offsets = {
+    Offset{1, 0},  Offset{1, 1},   Offset{1, -1}, Offset{-1, 0},
+    Offset{-1, 1}, Offset{-1, -1}, Offset{0, 1},  Offset{0, -1},
+};
+
+inline constexpr std::array<Offset, 4> rook_directions = {
+    Offset{1, 0},
+    Offset{-1, 0},
+    Offset{0, 1},
+    Offset{0, -1},
+};
+
+inline constexpr std::array<Offset, 4> bishop_directions = {
+    Offset{1, 1},
+    Offset{1, -1},
+    Offset{-1, 1},
+    Offset{-1, -1},
+};
+
 /// Возвращает индекс младшего установленного бита и сбрасывает его в `bb`.
 /// Предусловие: `bb != 0` (для нуля `__builtin_ctzll` даёт неопределённое поведение).
 constexpr int pop_lsb(Bitboard& bb) {
