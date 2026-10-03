@@ -83,17 +83,7 @@ void print_board(const Board& board) {
     }
 }
 
-int rank_of(int square) { return square / 8; };
-
-int file_of(int square) { return square % 8; };
-
-int square_of(int rank, int file) { return rank * 8 + file; }
-
 int mirror_square(int square) { return square_of(7 - rank_of(square), file_of(square)); };
-
-bool is_valid_square(int rank, int file) {
-    return rank >= 0 && rank <= 7 && file >= 0 && file <= 7;
-}
 
 Color opposite_color(Color color) { return (color == Color::White) ? Color::Black : Color::White; }
 

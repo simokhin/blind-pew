@@ -24,9 +24,7 @@ bool check(const std::string& name, const std::string& fen, int depth, long expe
 
 int main() {
     init_zobrist_keys();
-    init_knight_attacks();
-    init_king_attacks();
-    init_pawn_attacks();
+
     init_rook_magics();
     init_bishop_magics();
 

@@ -114,13 +114,15 @@ using Board = std::array<Piece, 64>;
 
 void print_board(const Board& board);
 
-int rank_of(int square);
-int file_of(int square);
-int square_of(int rank, int file);
+constexpr int rank_of(int square) { return square / 8; }
+constexpr int file_of(int square) { return square % 8; }
+constexpr int square_of(int rank, int file) { return rank * 8 + file; }
+constexpr bool is_valid_square(int rank, int file) {
+    return rank >= 0 && rank <= 7 && file >= 0 && file <= 7;
+}
 
 int mirror_square(int square);
 
-bool is_valid_square(int rank, int file);
 Color opposite_color(Color color);
 
 int square_from_algebraic(const std::string& s);
