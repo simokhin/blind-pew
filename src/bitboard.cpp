@@ -171,18 +171,6 @@ bool is_magic_valid(int square, Bitboard magic, Bitboard mask, int bits,
     return true;
 }
 
-int pop_lsb(Bitboard& bb) {
-    int bit_number = __builtin_ctzll(bb);
-    bb &= bb - 1;
-    return bit_number;
-}
-
-// Возвращает битборд с одним установленным битом (самый младший бит bb)
-Bitboard lsb_bb(Bitboard bb) { return bb & (-bb); }
-
-int popcount(Bitboard bb) { return __builtin_popcountll(bb); }
-
-// Возвращает битборд всех фигур, атакующих клетку
 Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) {
     Bitboard attackers = 0;
 
@@ -217,7 +205,6 @@ Bitboard attackers_to(const Position& position, int square, Bitboard occupancy) 
     return attackers;
 }
 
-// Возвращает битборд с наименее ценным атакующим клетку
 Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, Color side,
                                  PieceType& out_type) {
     for (int type = 0; type <= static_cast<int>(PieceType::King); type++) {
@@ -232,7 +219,6 @@ Bitboard least_valuable_attacker(const Position& position, Bitboard attackers, C
     return 0;
 }
 
-// Берем все клетки, атакованные пешками
 Bitboard pawn_attacks_bulk(Bitboard pawns, Color color) {
     if (color == Color::White) {
         return ((pawns & ~FILE_A) << 7) | ((pawns & ~FILE_H) << 9);
